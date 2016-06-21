@@ -1,19 +1,16 @@
 function love.load()
   math.randomseed(os.time())
   love.window.setTitle('UnUntitled')
-  world = require("classes.world")
+  World = require("classes.world")
   tank = require("classes.tank")
   projectile = require("classes.projectile")
-  world.init()
+  world = World.create()
   tank.init(world.window.width/2, world.window.height/2, world.window.width, world.window.height, 400, 600, projectile, "blue_tank_base.png", "blue_tank_turrent.png", "blue_missile.png")
-  wasd = true
-  drift = false
-  click = false
-  follow = false
+  time = 0
 end
 
 function love.update(dt)
-  world.time = world.time + dt
+  time = time + dt
   tank.userControl()
   tank.approachTarget(dt)
   tank.rotate(dt)
@@ -21,6 +18,7 @@ function love.update(dt)
 end
 
 function love.draw()
+  world:draw()
   tank.draw()
   tank.debug_view()
 end
