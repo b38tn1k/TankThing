@@ -4,40 +4,39 @@ World.__index = World
 
 -- TODO: clean this - make a 'render world' method and seperate it from the creation section
 
-function World.create()
+function World.create(width, height)
   local w = {}
   setmetatable(w, World)
   math.randomseed(os.time() * 1000)
-  temp_seed = 0
-  w.seed = math.random()
-  while true do
-    temp_seed = math.random()
-    if temp_seed < 0.03  and temp_seed > 0.01 then
-      w.seed = temp_seed/10
-      break
-    end
+  for i = 1, 100 do   -- clear out start of random buffer
+    math.random()
   end
-  w.window = {}
-  w.window.width, w.window.height, w.window.FLAGS = love.window.getMode()
-  -- make terrain canvas thing
+  w.seed = 10
+  w.scale = 0.002
+  w.width, w.height = width, height
   w.map = {}
-  for i = 1, w.window.width do
-      w.map[i] = {}
-      for j = 1, w.window.height do
-          w.map[i][j] = love.math.noise(w.seed * i, w.seed * j)
+  return w
+end
+
+function World:generate()
+  self.seed = math.random() * 100
+  for i = 1, self.width do
+      self.map[i] = {}
+      for j = 1, self.height do
+          self.map[i][j] = love.math.noise(self.scale * i + self.seed, self.scale * j + self.seed)
       end
   end
-  w.canvas = love.graphics.newCanvas(w.window.width, w.window.height)
-  love.graphics.setCanvas(w.canvas)
-  for i = 1, w.window.width do
-    for j = 1, w.window.height do
-      if w.map[i][j] < 0.3 then
+  self.canvas = love.graphics.newCanvas(self.width, self.height)
+  love.graphics.setCanvas(self.canvas)
+  for i = 1, self.width do
+    for j = 1, self.height do
+      if self.map[i][j] < 0.3 then
         love.graphics.setColor(50, 100, 255, 255)
-      elseif w.map[i][j] < 0.35 then
+      elseif self.map[i][j] < 0.35 then
         love.graphics.setColor(200, 150, 0, 255)
-      elseif w.map[i][j] < 0.5 then
+      elseif self.map[i][j] < 0.5 then
         love.graphics.setColor(80, 100, 0, 255)
-      elseif w.map[i][j] < 0.9 then
+      elseif self.map[i][j] < 0.9 then
         love.graphics.setColor(40, 100, 40, 255)
       else
         love.graphics.setColor(30, 80, 10, 255)
@@ -46,12 +45,11 @@ function World.create()
     end
   end
   love.graphics.setCanvas()
-  return w
 end
 
 function World:draw()
+  love.graphics.reset()
   love.graphics.draw(self.canvas)
-
 end
 
 return World

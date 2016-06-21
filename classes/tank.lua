@@ -45,6 +45,48 @@ t.projectiles = {}
 
 -- SET UP THE TANK BOUNDARIES
 local function init(x_position, y_position, x_bound, y_bound, top_speed, projectile_speed, projectile_delegate, img1_pth, img2_pth, img3_pth)
+  -- CONSTANTS AND VARIABLES
+  t.top_speed = 400
+  t.vel_gain = 0.12
+  t.rot_gain = 0.12
+  t.acceptable_lin_error = 0.01
+  t.acceptable_rad_error = math.rad(45)
+  t.autonomous = true
+  t.speed = 0
+
+  t.projectile = {}
+  t.projectile.speed = 0
+  t.projectile.img_path = ""
+
+  t.x = {}
+  t.x.position = 0
+  t.x.target = 0
+  t.x.speed = 0
+  t.x.bound = 0
+  t.x.velocity = 0
+  t.x.image_offset = 0
+
+  t.y = {}
+  t.y.position = 0
+  t.y.target = 0
+  t.y.velocity = 0
+  t.y.speed = 0
+  t.y.bound = 0
+  t.y.image_offset = 0
+
+  t.rotation = {}
+  t.rotation.base = 0
+  t.rotation.base_target = 0
+  t.rotation.turrent = 0
+  t.rotation.turrent_target = 0
+
+  t.sprite = {}
+  t.sprite.layer1 = {}
+  t.sprite.layer2 = {}
+
+  t.hitbox = {}
+  t.projectiles = {}
+  
   t.x.bound, t.y.bound = x_bound, y_bound
   t.x.position, t.y.position = x_position, y_position
   t.top_speed = top_speed
@@ -90,6 +132,7 @@ t.debug_view = debug_view
 
 -- DRAW THE TANK
 local function draw()
+  love.graphics.reset()
   love.graphics.draw(t.sprite.layer1.img, t.x.position - math.floor(t.sprite.layer1.width/2), t.y.position - math.floor(t.sprite.layer1.height/2), t.rotation.base, 1, 1, t.sprite.layer1.width/2, t.sprite.layer1.height/2)
   for i, projectile in ipairs(t.projectiles) do
     projectile:draw()
