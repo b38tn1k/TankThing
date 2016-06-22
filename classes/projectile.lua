@@ -6,15 +6,19 @@ Projectile.__index = Projectile
 function Projectile.create( data )
   local p = {}
   setmetatable( p, Projectile )
-  speed, img_pth, x_pos, y_pos, rotation = data[1], data[2], data[3], data[4], data[5]
+  parent_id, speed, img_pth, x_pos, y_pos, rotation = data[1], data[2], data[3], data[4], data[5], data[6]
   p.x = {}
   p.y = {}
   p.sprite = {}
-  p.x.position, p.y.position = x_pos, y_pos
   p.rotation = rotation
+  p.parent_id = parent_id
   p.sprite.img = love.graphics.newImage(img_pth)
   p.sprite.width = p.sprite.img:getWidth()
   p.sprite.height = p.sprite.img:getHeight()
+  p.x.position = x_pos + p.sprite.width/2
+  p.y.position = y_pos + p.sprite.height/2
+  p.x.origin = x_pos + p.sprite.width/2
+  p.y.origin = y_pos + p.sprite.height/2
   p.x.velocity = -1 * speed * math.cos( rotation + math.rad( 90 ) ) -- TODO sprites are drawn wrong hence math.rad(90) everywhere
   p.y.velocity = -1 * speed * math.sin( rotation + math.rad( 90 ) )
   return p
