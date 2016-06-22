@@ -14,7 +14,7 @@ function World.create(width, height)
   w.seed = {}
   w.map = {}
   w.amplitude = {0.6, 0.3, 0.1}
-  w.scale = {0.002, 0.007, 0.04}
+  w.scale = {0.001, 0.007, 0.04}
   w.width, w.height = width, height
 
   return w
@@ -48,6 +48,9 @@ function World:generateAndRender()
   myShader = love.graphics.newShader[[
   vec4 effect( vec4 color, Image texture, vec2 texture_coords, vec2 screen_coords ){
       vec4 pixel = Texel(texture, texture_coords );//This is the current pixel color
+      color[0] = 2 * color[0];
+      color[1] = 2 * color[1];
+      color[2] = 2 * color[2];
       return pixel * color;
     }
   ]]

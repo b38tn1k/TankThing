@@ -79,7 +79,7 @@ function Tank:drawLayer1()
 end
 
 function Tank:drawLayer2()
-  love.graphics.draw(self.sprite_layer2.img, self.x.position  - math.floor(self.sprite_layer2.width/2), self.y.position  - math.floor(self.sprite_layer2.height/2), self.rotation.base + self.rotation.turrent, 1, 1, self.sprite_layer2.width/2, self.sprite_layer2.height/2)
+  love.graphics.draw(self.sprite_layer2.img, self.x.position  - math.floor(self.sprite_layer1.width/2), self.y.position  - math.floor(self.sprite_layer1.height/2), self.rotation.base + self.rotation.turrent, 1, 1, self.sprite_layer2.width/2, self.sprite_layer2.height/2)
 end
 
 -- ROTATE UPPER LAYER

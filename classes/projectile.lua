@@ -7,10 +7,15 @@ function Projectile.create( data )
   local p = {}
   setmetatable( p, Projectile )
   speed, img_pth, x_pos, y_pos, rotation = data[1], data[2], data[3], data[4], data[5]
+
   p.x = {}
   p.y = {}
   p.sprite = {}
+  p.arm_radius = 28
+  p.arm_radius = p.arm_radius * p.arm_radius
+  p.armed = false
   p.x.position, p.y.position = x_pos, y_pos
+  p.x.origin, p.y.origin = x_pos, y_pos
   p.rotation = rotation
   p.sprite.img = love.graphics.newImage(img_pth)
   p.sprite.width = p.sprite.img:getWidth()
@@ -29,6 +34,13 @@ end
 function Projectile:update(dt)
   self.x.position = self.x.position + self.x.velocity * dt
   self.y.position = self.y.position + self.y.velocity * dt
+  if not self.armed then
+    x_displacement = self.x.position - self.x.origin
+    y_displacement = (self.y.position - self.y.origin) * (self.y.position - self.y.origin)
+    if  x_displacement * x_displacement + y_displacement * y_displacement > self.arm_radius then
+      self.armed = true
+    end
+  end
 end
 
 return Projectile
