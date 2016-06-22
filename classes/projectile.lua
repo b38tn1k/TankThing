@@ -18,7 +18,6 @@ function Projectile.create( speed, img_pth, x_pos, y_pos, rotation )
   p.y.velocity = -1 * speed * math.sin( rotation + math.rad( 90 ) )
   return p
 end
-Projectile.init = init
 
 -- DRAW THE MISSILES
 function Projectile:draw()
