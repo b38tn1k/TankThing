@@ -3,9 +3,10 @@ Projectile.__index = Projectile
 
 
 -- INIT PROJECTILE/MISSILE CLASS
-function Projectile.create( speed, img_pth, x_pos, y_pos, rotation )
+function Projectile.create( data )
   local p = {}
   setmetatable( p, Projectile )
+  speed, img_pth, x_pos, y_pos, rotation = data[1], data[2], data[3], data[4], data[5]
   p.x = {}
   p.y = {}
   p.sprite = {}
@@ -18,7 +19,6 @@ function Projectile.create( speed, img_pth, x_pos, y_pos, rotation )
   p.y.velocity = -1 * speed * math.sin( rotation + math.rad( 90 ) )
   return p
 end
-Projectile.init = init
 
 -- DRAW THE MISSILES
 function Projectile:draw()
