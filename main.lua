@@ -23,19 +23,26 @@ function love.load()
   img1_pth = "blue_tank_base.png"
   img2_pth = "blue_tank_turrent.png"
   img3_pth = "blue_missile.png"
-  tank = Tank.create(1, x_position, y_position, x_bound, y_bound, top_speed, projectile_speed, img1_pth, img2_pth, img3_pth)
-  tank2 = Tank.create(2, x_position + 50, y_position + 50, x_bound, y_bound, top_speed, projectile_speed, img1_pth, img2_pth, img3_pth)
-  table.insert(tanks, tank)
+  tank1 = Tank.create(1, x_position, y_position, x_bound, y_bound, top_speed, projectile_speed, img1_pth, img2_pth, img3_pth)
+  tank1.active = true
+  tank2 = Tank.create(2, x_position - 200, y_position + 200, x_bound, y_bound, top_speed, projectile_speed, img1_pth, img2_pth, img3_pth)
+  tank3 = Tank.create(2, x_position + 200, y_position + 200, x_bound, y_bound, top_speed, projectile_speed, img1_pth, img2_pth, img3_pth)
+  table.insert(tanks, tank1)
   table.insert(tanks, tank2)
+  table.insert(tanks, tank3)
 
 end
 
 function love.update(dt)
   time = time + dt
-  tank:userControl()
-  tank:approachTarget(dt)
-  tank:rotate(dt)
-  tank:update(dt, 1)
+  for j, tank in ipairs(tanks) do
+    if tank.active == true then
+      tank:userControl()
+      tank:approachTarget(dt)
+      tank:rotate(dt)
+      tank:update(dt, 1)
+    end
+  end
   for i, projectile in ipairs(projectiles) do
     -- Remove Projectiles that leave screen (TODO: fix magic numbers due to sprite)
     if projectile.x.position > screen.width or projectile.x.position < 0 or projectile.y.position > screen.height or projectile.y.position < 0 then
@@ -48,6 +55,7 @@ function love.update(dt)
       if projectile.x.position >= tank.hitbox.x_min and projectile.x.position <= tank.hitbox.x_max then
         if projectile.y.position >= tank.hitbox.y_min and projectile.y.position <= tank.hitbox.y_max and tank.id ~= projectile.parent_id then
           table.remove(projectiles, i)
+          table.remove(tanks, j)
         end
       end
     end
@@ -57,14 +65,15 @@ end
 function love.draw()
   love.graphics.reset()
   world:draw()
-  tank:drawLayer1()
-  tank:debug_view()
+  for j, tank in ipairs(tanks) do
+    tank:drawLayer1()
+  end
   for i, projectile in ipairs(projectiles) do
     projectile:draw()
   end
-  tank:drawLayer2()
-  tank2:drawLayer1()
-  tank2:drawLayer2()
+  for j, tank in ipairs(tanks) do
+    tank:drawLayer2()
+  end
 end
 
 function love.mousepressed(x, y, button, istouch)
@@ -73,8 +82,12 @@ end
 
 function love.keyreleased(key)
   if key == " " then
-    projectile = Projectile.create(tank:fire_main_weapon())
-    table.insert(projectiles, projectile)
+    for j, tank in ipairs(tanks) do
+      if tank.active == true then
+        projectile = Projectile.create(tank:fire_main_weapon())
+        table.insert(projectiles, projectile)
+      end
+    end
   end
   if key == "r" then
     worldseed = world:newSeed()
@@ -90,7 +103,8 @@ function love.resize(w, h)
   world = World.create(screen.width, screen.height)
   world.seed = worldseed
   world:generateAndRender()
-  tank.x.bound = screen.width
-  tank.y.bound = screen.height
-  print(("Window resized to width: %d and height: %d."):format(w, h))
+  for j, tank in ipairs(tanks) do
+    tank.x.bound = screen.width
+    tank.y.bound = screen.height
+  end
 end

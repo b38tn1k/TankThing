@@ -7,6 +7,7 @@ function Tank.create(id, x_position, y_position, x_bound, y_bound, top_speed, pr
   -- CONSTANTS AND VARIABLES
   local t = {}
   setmetatable( t, Tank )
+  t.active = false
   t.top_speed = 400
   t.vel_gain = 0.12
   t.rot_gain = 0.12
