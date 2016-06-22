@@ -10,7 +10,8 @@ function love.load()
   tank = require("classes.tank")
   projectile = require("classes.projectile")
   world = World.create(screen.width, screen.height)
-  world:generate()
+  worldseed = world:newSeed()
+  world:generateAndRender()
   tank.init(screen.width/2, screen.height/2, screen.width, screen.height, 400, 600, projectile, "blue_tank_base.png", "blue_tank_turrent.png", "blue_missile.png")
   time = 0
 
@@ -38,7 +39,8 @@ function love.keyreleased(key)
     tank.fire_main_weapon()
   end
   if key == "r" then
-    world:generate()
+    worldseed = world:newSeed()
+    world:generateAndRender()
   end
   if key == "escape" then
     love.event.quit( )
@@ -48,7 +50,7 @@ end
 function love.resize(w, h)
   screen.width, screen.height = w, h
   world = World.create(screen.width, screen.height)
-  world:generate()
-  tank.init(screen.width/2, screen.height/2, screen.width, screen.height, 400, 600, projectile, "blue_tank_base.png", "blue_tank_turrent.png", "blue_missile.png")
+  world.seed = worldseed
+  world:generateAndRender()
   print(("Window resized to width: %d and height: %d."):format(w, h))
 end

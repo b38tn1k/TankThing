@@ -1,48 +1,6 @@
 -- TANK Class
 local t = {}
 
--- CONSTANTS AND VARIABLES
-t.top_speed = 400
-t.vel_gain = 0.12
-t.rot_gain = 0.12
-t.acceptable_lin_error = 0.01
-t.acceptable_rad_error = math.rad(45)
-t.autonomous = true
-t.speed = 0
-
-t.projectile = {}
-t.projectile.speed = 0
-t.projectile.img_path = ""
-
-t.x = {}
-t.x.position = 0
-t.x.target = 0
-t.x.speed = 0
-t.x.bound = 0
-t.x.velocity = 0
-t.x.image_offset = 0
-
-t.y = {}
-t.y.position = 0
-t.y.target = 0
-t.y.velocity = 0
-t.y.speed = 0
-t.y.bound = 0
-t.y.image_offset = 0
-
-t.rotation = {}
-t.rotation.base = 0
-t.rotation.base_target = 0
-t.rotation.turrent = 0
-t.rotation.turrent_target = 0
-
-t.sprite = {}
-t.sprite.layer1 = {}
-t.sprite.layer2 = {}
-
-t.hitbox = {}
-t.projectiles = {}
-
 -- SET UP THE TANK BOUNDARIES
 local function init(x_position, y_position, x_bound, y_bound, top_speed, projectile_speed, projectile_delegate, img1_pth, img2_pth, img3_pth)
   -- CONSTANTS AND VARIABLES
@@ -86,7 +44,7 @@ local function init(x_position, y_position, x_bound, y_bound, top_speed, project
 
   t.hitbox = {}
   t.projectiles = {}
-  
+
   t.x.bound, t.y.bound = x_bound, y_bound
   t.x.position, t.y.position = x_position, y_position
   t.top_speed = top_speed
@@ -157,8 +115,8 @@ local function rotate(dt)
   if love.keyboard.isDown("e") then
     t.rotation.turrent_target = t.rotation.turrent_target + 0.1
   end
-  t.rotation.turrent = controlDampener(t.rotation.turrent, t.rotation.turrent_target, t.rot_gain, dt)
-  t.rotation.base = controlDampener(t.rotation.base, t.rotation.base_target, t.rot_gain, dt)
+  t.rotation.turrent = controlDampener(t.rotation.turrent, t.rotation.turrent_target, t.rot_gain)
+  t.rotation.base = controlDampener(t.rotation.base, t.rotation.base_target, t.rot_gain)
 end
 t.rotate = rotate
 
@@ -195,21 +153,21 @@ t.turn_right = turn_right
 
 -- GO FORWARD
 local function forwards()
-  t.speed = controlDampener(t.speed, 0 - t.top_speed, t.vel_gain, dt)
+  t.speed = controlDampener(t.speed, 0 - t.top_speed, t.vel_gain)
   t.update_velocities()
 end
 t.forwards = forwards
 
 -- GO BACKWARDS
 local function backwards()
-  t.speed = controlDampener(t.speed, t.top_speed, t.vel_gain, dt)
+  t.speed = controlDampener(t.speed, t.top_speed, t.vel_gain)
   t.update_velocities()
 end
 t.backwards = backwards
 
 -- STOP
 local function slow_to_stop()
-  t.speed = controlDampener(t.speed, 0, t.vel_gain, dt)
+  t.speed = controlDampener(t.speed, 0, t.vel_gain)
   t.update_velocities()
 end
 t.slow_to_stop = slow_to_stop
