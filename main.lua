@@ -23,8 +23,8 @@ function love.load()
   img1_pth = "blue_tank_base.png"
   img2_pth = "blue_tank_turrent.png"
   img3_pth = "blue_missile.png"
-  tank = Tank.create(x_position, y_position, x_bound, y_bound, top_speed, projectile_speed, img1_pth, img2_pth, img3_pth)
-  tank2 = Tank.create(x_position + 50, y_position + 50, x_bound, y_bound, top_speed, projectile_speed, img1_pth, img2_pth, img3_pth)
+  tank = Tank.create(1, x_position, y_position, x_bound, y_bound, top_speed, projectile_speed, img1_pth, img2_pth, img3_pth)
+  tank2 = Tank.create(2, x_position + 50, y_position + 50, x_bound, y_bound, top_speed, projectile_speed, img1_pth, img2_pth, img3_pth)
   table.insert(tanks, tank)
   table.insert(tanks, tank2)
 
@@ -38,18 +38,16 @@ function love.update(dt)
   tank:update(dt, 1)
   for i, projectile in ipairs(projectiles) do
     -- Remove Projectiles that leave screen (TODO: fix magic numbers due to sprite)
-    if projectile.x.position > screen.width + 50 or projectile.x.position < 0 or projectile.y.position > screen.height + 50 or projectile.y.position < 0 then
+    if projectile.x.position > screen.width or projectile.x.position < 0 or projectile.y.position > screen.height or projectile.y.position < 0 then
       table.remove(projectiles, i)
     else
       projectile:update(dt)
     end
     -- Check for Collisions between armed projectiles and tanks/entities
     for j, tank in ipairs(tanks) do
-      if projectile.armed then
-        if projectile.x.position > tank.hitbox.x_min and projectile.x.position < tank.hitbox.x_max then
-          if projectile.y.position > tank.hitbox.y_min and projectile.y.position < tank.hitbox.y_max then
-            table.remove(projectiles, i)
-          end
+      if projectile.x.position >= tank.hitbox.x_min and projectile.x.position <= tank.hitbox.x_max then
+        if projectile.y.position >= tank.hitbox.y_min and projectile.y.position <= tank.hitbox.y_max and tank.id ~= projectile.parent_id then
+          table.remove(projectiles, i)
         end
       end
     end
@@ -57,10 +55,10 @@ function love.update(dt)
 end
 
 function love.draw()
-  -- love.graphics.reset()
+  love.graphics.reset()
   world:draw()
   tank:drawLayer1()
-  -- tank2:debug_view()
+  tank:debug_view()
   for i, projectile in ipairs(projectiles) do
     projectile:draw()
   end

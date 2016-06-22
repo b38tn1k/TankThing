@@ -3,7 +3,7 @@ local Tank = {}
 Tank.__index = Tank
 
 -- SET UP THE TANK BOUNDARIES
-function Tank.create(x_position, y_position, x_bound, y_bound, top_speed, projectile_speed, img1_pth, img2_pth, img3_pth)
+function Tank.create(id, x_position, y_position, x_bound, y_bound, top_speed, projectile_speed, img1_pth, img2_pth, img3_pth)
   -- CONSTANTS AND VARIABLES
   local t = {}
   setmetatable( t, Tank )
@@ -21,6 +21,7 @@ function Tank.create(x_position, y_position, x_bound, y_bound, top_speed, projec
   t.sprite_layer1 = {}
   t.sprite_layer2 = {}
   t.hitbox = {}
+  t.id = id
   t.x.position = x_position
   t.y.position = y_position
   t.x.bound = x_bound
@@ -120,13 +121,13 @@ end
 
 -- TURN LEFT
 function Tank:turn_left()
-  self.rotation.base_target = self.rotation.base_target - 0.1
+  self.rotation.base_target = self.rotation.base_target - 0.05
   self:update_velocities()
 end
 
 -- TURN RIGHT
 function Tank:turn_right()
-  self.rotation.base_target = self.rotation.base_target + 0.1
+  self.rotation.base_target = self.rotation.base_target + 0.05
   self:update_velocities()
 end
 
@@ -204,7 +205,9 @@ function Tank:setWaypoint(x, y)
 end
 
 function Tank:fire_main_weapon()
-  data = {self.projectile.speed, self.projectile.img_path, self.x.position, self.y.position, (self.rotation.turrent + self.rotation.base), self.x.bound, self.y.bound}
+  x_position = self.x.position - self.sprite_layer1.width/2
+  y_position = self.y.position - self.sprite_layer1.height/2
+  data = {self.id, self.projectile.speed, self.projectile.img_path, x_position, y_position, (self.rotation.turrent + self.rotation.base), self.x.bound, self.y.bound, self.sprite_layer2.height*2}
   return data
 end
 
