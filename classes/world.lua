@@ -14,7 +14,7 @@ function World.create(width, height)
   w.seed = {}
   w.map = {}
   w.amplitude = {0.6, 0.3, 0.1}
-  w.scale = {0.002, 0.007, 0.04}
+  w.scale = {0.001, 0.006, 0.04}
   w.width, w.height = width, height
 
   return w
