@@ -15,7 +15,7 @@ function love.load()
   y_position = screen.height/2
   x_bound = screen.width
   y_bound = screen.height
-  top_speed = 400
+  top_speed = 300
   projectile_speed = 600
   projectiles = {}
   img1_pth = "blue_tank_base.png"
@@ -44,11 +44,12 @@ end
 function love.draw()
   -- love.graphics.reset()
   world:draw()
-  tank:draw()
-  tank:debug_view()
+  tank:drawLayer1()
+  -- tank:debug_view()
   for i, projectile in ipairs(projectiles) do
     projectile:draw()
   end
+  tank:drawLayer2()
 end
 
 function love.mousepressed(x, y, button, istouch)
@@ -57,8 +58,7 @@ end
 
 function love.keyreleased(key)
   if key == " " then
-    data = tank:fire_main_weapon()    -- THIS IS A BIT GROSS TODO
-    projectile = Projectile.create(data[1], data[2], data[3], data[4], data[5])
+    projectile = Projectile.create(tank:fire_main_weapon())
     table.insert(projectiles, projectile)
   end
   if key == "r" then
