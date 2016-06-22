@@ -5,11 +5,11 @@ function love.load()
   screen.width, screen.height = 800, 600
   love.window.setMode(screen.width, screen.height, {resizable=true, minwidth=400, minheight=300})
   World = require("classes.world")
-  Tank = require("classes.tank")
-  Projectile = require("classes.projectile")
   world = World.create(screen.width, screen.height)
   worldseed = world:newSeed()
   world:generateAndRender()
+  Projectile = require("classes.projectile")
+  Tank = require("classes.tank")
   -- SETUP TANK
   x_position = screen.width/2
   y_position = screen.height/2
@@ -21,8 +21,7 @@ function love.load()
   img1_pth = "blue_tank_base.png"
   img2_pth = "blue_tank_turrent.png"
   img3_pth = "blue_missile.png"
-  -- why does it skip first arguement? TODO
-  tank = Tank.create(0, x_position, y_position, x_bound, y_bound, top_speed, projectile_speed, img1_pth, img2_pth, img3_pth)
+  tank = Tank.create(x_position, y_position, x_bound, y_bound, top_speed, projectile_speed, img1_pth, img2_pth, img3_pth)
   time = 0
 
 end
@@ -44,7 +43,7 @@ end
 
 function love.draw()
   -- love.graphics.reset()
-  -- world:draw()
+  world:draw()
   tank:draw()
   tank:debug_view()
   for i, projectile in ipairs(projectiles) do

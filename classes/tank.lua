@@ -3,7 +3,7 @@ local Tank = {}
 Tank.__index = Tank
 
 -- SET UP THE TANK BOUNDARIES
-function Tank:create(x_position, y_position, x_bound, y_bound, top_speed, projectile_speed, img1_pth, img2_pth, img3_pth)
+function Tank.create(x_position, y_position, x_bound, y_bound, top_speed, projectile_speed, img1_pth, img2_pth, img3_pth)
   -- CONSTANTS AND VARIABLES
   local t = {}
   setmetatable( t, Tank )
