@@ -28,7 +28,7 @@ function love.load()
   tank1 = Tank.create(1, x_position, y_position, x_bound, y_bound, top_speed, projectile_speed, img1_pth, img2_pth, img3_pth)
   tank1.active = true
   tank2 = Tank.create(2, x_position - 200, y_position + 200, x_bound, y_bound, top_speed, projectile_speed, img1_pth, img2_pth, img3_pth)
-  tank3 = Tank.create(2, x_position + 200, y_position + 200, x_bound, y_bound, top_speed, projectile_speed, img1_pth, img2_pth, img3_pth)
+  tank3 = Tank.create(3, x_position + 200, y_position + 200, x_bound, y_bound, top_speed, projectile_speed, img1_pth, img2_pth, img3_pth)
   table.insert(tanks, tank1)
   table.insert(tanks, tank2)
   table.insert(tanks, tank3)
@@ -39,10 +39,10 @@ function love.update(dt)
   for j, tank in ipairs(tanks) do
     if tank.active == true then
       tank:userControl()
-      tank:approachTarget(dt)
-      tank:rotate(dt)
-      tank:update(dt, 1)
     end
+    tank:approachTarget(dt)
+    tank:rotate(dt)
+    tank:update(dt, 1)
   end
   for i, projectile in ipairs(projectiles) do
     -- Remove Projectiles that leave screen (TODO: fix magic numbers due to sprite)
@@ -53,11 +53,9 @@ function love.update(dt)
     end
     -- Check for Collisions between armed projectiles and tanks/entities
     for j, tank in ipairs(tanks) do
-      if projectile.x.position >= tank.hitbox.x_min and projectile.x.position <= tank.hitbox.x_max then
-        if projectile.y.position >= tank.hitbox.y_min and projectile.y.position <= tank.hitbox.y_max and tank.id ~= projectile.parent_id then
-          table.remove(projectiles, i)
-          table.remove(tanks, j)
-        end
+      if tank:check_for_collision(projectile.x.position, projectile.y.position) == true and tank.id ~= projectile.parent_id then
+        table.remove(projectiles, i)
+        table.remove(tanks, j)
       end
     end
   end
@@ -82,9 +80,28 @@ function love.draw()
 end
 
 function love.mousepressed(x, y, button, istouch)
-  for j, tank in ipairs(tanks) do
-    if tank.active == true then
-      tank:setWaypoint(x, y)
+  if button == 'l' then
+    newly_selected = false
+    for j, tank in ipairs(tanks) do
+      if tank:check_for_collision(x, y) then
+        for j, other_tank in ipairs(tanks) do
+          other_tank.active = false
+        end
+        tank.active = true
+        newly_selected = true
+      end
+    end
+    for j, tank in ipairs(tanks) do
+      if tank.active == true and newly_selected == false then
+        tank:setTarget(x, y)
+      end
+    end
+  end
+  if button == 'r' then
+    for j, tank in ipairs(tanks) do
+      if tank.active == true then
+        tank:addWaypoint(x, y)
+      end
     end
   end
 end

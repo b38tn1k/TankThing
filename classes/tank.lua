@@ -27,6 +27,8 @@ function Tank.create(id, x_position, y_position, x_bound, y_bound, top_speed, pr
   t.y.position = y_position
   t.x.bound = x_bound
   t.y.bound = y_bound
+  t.x.path = {}
+  t.y.path = {}
   t.top_speed = top_speed
   t.projectile.speed = projectile_speed
   t.sprite_layer1.img = love.graphics.newImage(img1_pth)
@@ -175,8 +177,17 @@ function Tank:userControl()
   end
 end
 
--- SET UP AUTO TARGET FROM MOUSE CLICK OR SOMETHING. BEWARE: MY TRIG IS HACKY
-function Tank:setWaypoint(x, y)
+function Tank:addWaypoint(x, y)
+  table.insert(self.x.path, x)
+  table.insert(self.y.path, y)
+  print (self.x.path)
+  print (self.y.path)
+  self:setTarget(self.x.path[1], self.y.path[1])
+
+end
+
+-- SET UP AUTO TARGET FROM MOUSE CLICK OR SOMETHING. BEWARE: TRIG IS HACKY
+function Tank:setTarget(x, y)
   prior_rotations = math.rad(360)*(math.floor((self.rotation.base + math.rad(180))/math.rad(360)))
   rotation = 0
   self.autonomous = true
@@ -209,6 +220,16 @@ function Tank:setWaypoint(x, y)
   end
 end
 
+function Tank:check_for_collision(x, y)
+  collision = false
+  if x >= self.hitbox.x_min and x <= self.hitbox.x_max then
+    if y >= self.hitbox.y_min and y <= self.hitbox.y_max then
+      collision = true
+    end
+  end
+  return collision
+end
+
 function Tank:fire_main_weapon()
   x_position = self.x.position - self.sprite_layer1.width/2
   y_position = self.y.position - self.sprite_layer1.height/2
@@ -235,6 +256,14 @@ function Tank:approachTarget(dt)
     self.x.velocity = self:closestToZero(delta_x, self.x.speed)
     self.y.velocity = self:closestToZero(delta_y, self.y.speed)
   end
+  --check if arrived and if there are more points to go to
+  if self:check_for_collision(self.x.target, self.y.target) == true and self.x.path[2] ~= nil then
+    self.x.target = self.x.path[2]
+    self.y.target = self.y.path[2]
+    table.remove(self.x.path, 1)
+    table.remove(self.y.path, 1)
+  end
+
 end
 
 -- DRIFT TOWARDS MOUSE
