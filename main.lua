@@ -93,15 +93,6 @@ function love.mousepressed(x, y, button, istouch)
     end
     for j, tank in ipairs(tanks) do
       if tank.active == true and newly_selected == false then
-        tank:setTarget(x, y)
-        tank.x.path = {}
-        tank.y.path = {}
-      end
-    end
-  end
-  if button == 'r' then
-    for j, tank in ipairs(tanks) do
-      if tank.active == true then
         tank:addWaypoint(x, y)
       end
     end

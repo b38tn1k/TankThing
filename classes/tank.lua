@@ -258,11 +258,9 @@ function Tank:approachTarget(dt)
 end
 
 function Tank:addWaypoint(x, y)
-  table.insert(self.x.path, x)
-  table.insert(self.y.path, y)
-  print ()
-  for i, point in pairs(self.x.path) do
-    print (point .." ".. self.y.path[i])
+  if x ~= nil and y ~= nil then
+    table.insert(self.x.path, x)
+    table.insert(self.y.path, y)
   end
 end
 
