@@ -16,6 +16,13 @@ function World.create(width, height)
   w.amplitude = {0.6, 0.3, 0.1}
   w.scale = {0.001, 0.006, 0.04}
   w.width, w.height = width, height
+  w.color = {}
+  w.color.dark_blue = {0, 50, 205, 255}
+  w.color.light_blue = {50, 100, 255, 255}
+  w.color.sand_yellow = {200, 150, 0, 255}
+  w.color.light_green = {80, 100, 0, 255}
+  w.color.green = {40, 100, 40, 255}
+  w.color.dark_green = {30, 80, 10, 255}
 
   return w
 end
@@ -27,7 +34,8 @@ function World:newSeed()
   return self.seed
 end
 
-function World:generateAndRender()
+function World:generateAndRender(shader)
+love.graphics.setShader(shader)
   base_layer = 0
   lump_layer = 0
   more_lumps = 0
@@ -44,42 +52,30 @@ function World:generateAndRender()
   -- Draw the Height Map to a canvas
   self.canvas = love.graphics.newCanvas(self.width, self.height)
   love.graphics.setCanvas(self.canvas)
-  -- Create Shaders
-  myShader = love.graphics.newShader[[
-  vec4 effect( vec4 color, Image texture, vec2 texture_coords, vec2 screen_coords ){
-      vec4 pixel = Texel(texture, texture_coords );//This is the current pixel color
-      color[0] = 2 * color[0];
-      color[1] = 2 * color[1];
-      color[2] = 2 * color[2];
-      return pixel * color;
-    }
-  ]]
-  love.graphics.setShader(myShader)
   -- Render Base Image
   for i = 1, self.width do
     for j = 1, self.height do
       if self.map[i][j] < 0.15 then
-        love.graphics.setColor(0, 50, 205, 255)
+        love.graphics.setColor(self.color.dark_blue)
       elseif self.map[i][j] < 0.28 then
-        love.graphics.setColor(50, 100, 255, 255)
+        love.graphics.setColor(self.color.light_blue)
       elseif self.map[i][j] < 0.33 then
-        love.graphics.setColor(200, 150, 0, 255)
+        love.graphics.setColor(self.color.sand_yellow)
       elseif self.map[i][j] < 0.5 then
-        love.graphics.setColor(80, 100, 0, 255)
+        love.graphics.setColor(self.color.light_green)
       elseif self.map[i][j] < 0.8 then
-        love.graphics.setColor(40, 100, 40, 255)
+        love.graphics.setColor(self.color.green)
       else
-        love.graphics.setColor(30, 80, 10, 255)
+        love.graphics.setColor(self.color.dark_green)
       end
       love.graphics.point( i - 1, j - 1 )
     end
   end
-  love.graphics.setShader()
   love.graphics.setCanvas()
+  love.graphics.setShader()
 end
 
 function World:draw()
-  love.graphics.reset()
   love.graphics.draw(self.canvas)
 end
 

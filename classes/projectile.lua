@@ -25,8 +25,10 @@ function Projectile.create( data )
 end
 
 -- DRAW THE MISSILES
-function Projectile:draw()
+function Projectile:draw(shader)
+  love.graphics.setShader(shader)
   love.graphics.draw( self.sprite.img, self.x.position- math.floor( self.sprite.width/2 ), self.y.position - math.floor( self.sprite.height/2 ), self.rotation, 1, 1, self.sprite.width/2, self.sprite.height/2)
+  love.graphics.setShader()
 end
 
 -- UPDATE MISSILES
