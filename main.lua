@@ -5,11 +5,11 @@ function love.load()
   screen.width, screen.height = 800, 600
   love.window.setMode(screen.width, screen.height, {resizable=true, minwidth=400, minheight=300})
   -- Make Shader
-  halftoneShader = love.graphics.newShader("halftone.glsl")
+  myShader = love.graphics.newShader("brighterrgb.glsl")
   World = require("classes.world")
   world = World.create(screen.width, screen.height)
   worldseed = world:newSeed()
-  world:generateAndRender(halftoneShader)
+  world:generateAndRender(myShader)
   Projectile = require("classes.projectile")
   Tank = require("classes.tank")
   time = 0
@@ -100,7 +100,7 @@ function love.keyreleased(key)
   end
   if key == "r" then
     worldseed = world:newSeed()
-    world:generateAndRender(halftoneShader)
+    world:generateAndRender(myShader)
   end
   if key == "escape" then
     love.event.quit( )
@@ -111,7 +111,7 @@ function love.resize(w, h)
   screen.width, screen.height = w, h
   world = World.create(screen.width, screen.height)
   world.seed = worldseed
-  world:generateAndRender(halftoneShader)
+  world:generateAndRender(myShader)
   for j, tank in ipairs(tanks) do
     tank.x.bound = screen.width
     tank.y.bound = screen.height
