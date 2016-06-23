@@ -39,9 +39,9 @@ function love.update(dt)
   for j, tank in ipairs(tanks) do
     if tank.active == true then
       tank:userControl()
+      tank:rotate()
     end
     tank:approachTarget(dt)
-    tank:rotate(dt)
     tank:update(dt, 1)
   end
   for i, projectile in ipairs(projectiles) do
@@ -66,9 +66,9 @@ function love.draw()
   world:draw()
   for j, tank in ipairs(tanks) do
     tank:drawLayer1()
-    -- if tank.active == true then
-    --   tank:debug_view()
-    -- end
+    if tank.active == true then
+      tank:debug_view()
+    end
   end
   for i, projectile in ipairs(projectiles) do
     projectile:draw()
@@ -94,6 +94,8 @@ function love.mousepressed(x, y, button, istouch)
     for j, tank in ipairs(tanks) do
       if tank.active == true and newly_selected == false then
         tank:setTarget(x, y)
+        tank.x.path = {}
+        tank.y.path = {}
       end
     end
   end
