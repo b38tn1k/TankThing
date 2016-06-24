@@ -7,7 +7,7 @@ function Tank.create(id, x_position, y_position, x_bound, y_bound, top_speed, pr
   -- CONSTANTS AND VARIABLES
   local t = {}
   setmetatable( t, Tank )
-  t.active = false
+  t.selected = false
   t.top_speed = 400
   t.vel_gain = 0.12
   t.rot_gain = 0.12
@@ -92,7 +92,7 @@ function Tank:drawLayer2(shader)
 end
 
 -- ROTATE UPPER LAYER
-function Tank:rotate()
+function Tank:rotate_turrent()
   if self.rotation.turrent_target > math.rad(110) then
     self.rotation.turrent_target = math.rad(100)
   elseif self.rotation.turrent_target < 0 - math.rad(110) then
@@ -107,8 +107,6 @@ function Tank:rotate()
   if love.keyboard.isDown("e") then
     self.rotation.turrent_target = self.rotation.turrent_target + 0.1
   end
-  self.rotation.turrent = self:controlDampener(self.rotation.turrent, self.rotation.turrent_target, self.rot_gain)
-  self.rotation.base = self:controlDampener(self.rotation.base, self.rotation.base_target, self.rot_gain)
 end
 
 -- DAMPEN CHANGES IN VELOCITY, POSITION, ETC
@@ -296,6 +294,8 @@ function Tank:update(dt, speed_modifier)
       self.y.position = self.sprite_layer1.height
     end
   end
+  self.rotation.turrent = self:controlDampener(self.rotation.turrent, self.rotation.turrent_target, self.rot_gain)
+  self.rotation.base = self:controlDampener(self.rotation.base, self.rotation.base_target, self.rot_gain)
 end
 
 return Tank
