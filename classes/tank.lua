@@ -7,7 +7,7 @@ function Tank.create(id, x_position, y_position, x_bound, y_bound, top_speed, pr
   -- CONSTANTS AND VARIABLES
   local t = {}
   setmetatable( t, Tank )
-  t.active = false
+  t.selected = false
   t.top_speed = 400
   t.vel_gain = 0.12
   t.rot_gain = 0.12
@@ -27,11 +27,14 @@ function Tank.create(id, x_position, y_position, x_bound, y_bound, top_speed, pr
   t.y.position = y_position
   t.x.bound = x_bound
   t.y.bound = y_bound
+  t.x.path = {x_position}
+  t.y.path = {y_position}
   t.top_speed = top_speed
   t.projectile.speed = projectile_speed
   t.sprite_layer1.img = love.graphics.newImage(img1_pth)
   t.sprite_layer2.img = love.graphics.newImage(img2_pth)
   t.projectile.img_path = img3_pth
+  t.path_index = 1
   t.x.target = 0
   t.x.speed = 0
   t.x.velocity = 0
@@ -89,7 +92,7 @@ function Tank:drawLayer2(shader)
 end
 
 -- ROTATE UPPER LAYER
-function Tank:rotate(dt)
+function Tank:rotate_turrent()
   if self.rotation.turrent_target > math.rad(110) then
     self.rotation.turrent_target = math.rad(100)
   elseif self.rotation.turrent_target < 0 - math.rad(110) then
@@ -104,8 +107,6 @@ function Tank:rotate(dt)
   if love.keyboard.isDown("e") then
     self.rotation.turrent_target = self.rotation.turrent_target + 0.1
   end
-  self.rotation.turrent = self:controlDampener(self.rotation.turrent, self.rotation.turrent_target, self.rot_gain)
-  self.rotation.base = self:controlDampener(self.rotation.base, self.rotation.base_target, self.rot_gain)
 end
 
 -- DAMPEN CHANGES IN VELOCITY, POSITION, ETC
@@ -154,6 +155,34 @@ function Tank:slow_to_stop()
   self:update_velocities()
 end
 
+function Tank:check_for_collision(x, y)
+  collision = false
+  if x ~= nil and y ~= nil then
+    if x >= self.hitbox.x_min and x <= self.hitbox.x_max then
+      if y >= self.hitbox.y_min and y <= self.hitbox.y_max then
+        collision = true
+      end
+    end
+  end
+  return collision
+end
+
+function Tank:fire_main_weapon()
+  x_position = self.x.position - self.sprite_layer1.width/2
+  y_position = self.y.position - self.sprite_layer1.height/2
+  data = {self.id, self.projectile.speed, self.projectile.img_path, x_position, y_position, (self.rotation.turrent + self.rotation.base), self.x.bound, self.y.bound, self.sprite_layer2.height*2}
+  return data
+end
+
+-- RETURN CLOSEST VALUE TO ZERO
+function Tank:closestToZero(x, y)
+  new_value = math.min(math.abs(x), math.abs(y))
+  if x < 0 and y < 0 then
+    new_value = new_value * -1
+  end
+  return new_value
+end
+
 -- EXCITING INERTIAL WASD CONTROL
 function Tank:userControl()
   if love.keyboard.isDown("left", "a", "right", "d", "up", "w", "down", "s") then
@@ -175,8 +204,8 @@ function Tank:userControl()
   end
 end
 
--- SET UP AUTO TARGET FROM MOUSE CLICK OR SOMETHING. BEWARE: MY TRIG IS HACKY
-function Tank:setWaypoint(x, y)
+-- SET UP AUTO TARGET FROM MOUSE CLICK OR SOMETHING. BEWARE: TRIG IS HACKY
+function Tank:setTarget(x, y)
   prior_rotations = math.rad(360)*(math.floor((self.rotation.base + math.rad(180))/math.rad(360)))
   rotation = 0
   self.autonomous = true
@@ -209,22 +238,6 @@ function Tank:setWaypoint(x, y)
   end
 end
 
-function Tank:fire_main_weapon()
-  x_position = self.x.position - self.sprite_layer1.width/2
-  y_position = self.y.position - self.sprite_layer1.height/2
-  data = {self.id, self.projectile.speed, self.projectile.img_path, x_position, y_position, (self.rotation.turrent + self.rotation.base), self.x.bound, self.y.bound, self.sprite_layer2.height*2}
-  return data
-end
-
--- RETURN CLOSEST VALUE TO ZERO
-function Tank:closestToZero(x, y)
-  new_value = math.min(math.abs(x), math.abs(y))
-  if x < 0 and y < 0 then
-    new_value = new_value * -1
-  end
-  return new_value
-end
-
 -- MOVE TOWARDS TARGET
 function Tank:approachTarget(dt)
   x_pos_poscont_contrib = self:controlDampener(self.x.position, self.x.target, self.vel_gain)
@@ -234,6 +247,18 @@ function Tank:approachTarget(dt)
   if self.autonomous then
     self.x.velocity = self:closestToZero(delta_x, self.x.speed)
     self.y.velocity = self:closestToZero(delta_y, self.y.speed)
+  end
+  --check if arrived and if there are more points to go to
+  if self:check_for_collision(self.x.path[self.path_index], self.y.path[self.path_index]) == true and self.x.path[self.path_index + 1] ~= nil then
+    self.path_index = self.path_index + 1
+    self:setTarget(self.x.path[self.path_index], self.y.path[self.path_index])
+  end
+end
+
+function Tank:addWaypoint(x, y)
+  if x ~= nil and y ~= nil then
+    table.insert(self.x.path, x)
+    table.insert(self.y.path, y)
   end
 end
 
@@ -269,6 +294,8 @@ function Tank:update(dt, speed_modifier)
       self.y.position = self.sprite_layer1.height
     end
   end
+  self.rotation.turrent = self:controlDampener(self.rotation.turrent, self.rotation.turrent_target, self.rot_gain)
+  self.rotation.base = self:controlDampener(self.rotation.base, self.rotation.base_target, self.rot_gain)
 end
 
 return Tank

@@ -26,9 +26,9 @@ function love.load()
   img2_pth = "blue_tank_turrent.png"
   img3_pth = "blue_missile.png"
   tank1 = Tank.create(1, x_position, y_position, x_bound, y_bound, top_speed, projectile_speed, img1_pth, img2_pth, img3_pth)
-  tank1.active = true
+  tank1.selected = true
   tank2 = Tank.create(2, x_position - 200, y_position + 200, x_bound, y_bound, top_speed, projectile_speed, img1_pth, img2_pth, img3_pth)
-  tank3 = Tank.create(2, x_position + 200, y_position + 200, x_bound, y_bound, top_speed, projectile_speed, img1_pth, img2_pth, img3_pth)
+  tank3 = Tank.create(3, x_position + 200, y_position + 200, x_bound, y_bound, top_speed, projectile_speed, img1_pth, img2_pth, img3_pth)
   table.insert(tanks, tank1)
   table.insert(tanks, tank2)
   table.insert(tanks, tank3)
@@ -37,12 +37,12 @@ end
 function love.update(dt)
   time = time + dt
   for j, tank in ipairs(tanks) do
-    if tank.active == true then
+    if tank.selected == true then
       tank:userControl()
-      tank:approachTarget(dt)
-      tank:rotate(dt)
-      tank:update(dt, 1)
+      tank:rotate_turrent()
     end
+    tank:approachTarget(dt)
+    tank:update(dt, 1)
   end
   for i, projectile in ipairs(projectiles) do
     -- Remove Projectiles that leave screen (TODO: fix magic numbers due to sprite)
@@ -53,11 +53,9 @@ function love.update(dt)
     end
     -- Check for Collisions between armed projectiles and tanks/entities
     for j, tank in ipairs(tanks) do
-      if projectile.x.position >= tank.hitbox.x_min and projectile.x.position <= tank.hitbox.x_max then
-        if projectile.y.position >= tank.hitbox.y_min and projectile.y.position <= tank.hitbox.y_max and tank.id ~= projectile.parent_id then
-          table.remove(projectiles, i)
-          table.remove(tanks, j)
-        end
+      if tank:check_for_collision(projectile.x.position, projectile.y.position) == true and tank.id ~= projectile.parent_id then
+        table.remove(projectiles, i)
+        table.remove(tanks, j)
       end
     end
   end
@@ -68,9 +66,9 @@ function love.draw()
   world:draw()
   for j, tank in ipairs(tanks) do
     tank:drawLayer1()
-    -- if tank.active == true then
-    --   tank:debug_view()
-    -- end
+    if tank.selected == true then
+      tank:debug_view()
+    end
   end
   for i, projectile in ipairs(projectiles) do
     projectile:draw()
@@ -82,9 +80,21 @@ function love.draw()
 end
 
 function love.mousepressed(x, y, button, istouch)
-  for j, tank in ipairs(tanks) do
-    if tank.active == true then
-      tank:setWaypoint(x, y)
+  if button == 'l' then
+    newly_selected = false
+    for j, tank in ipairs(tanks) do
+      if tank:check_for_collision(x, y) then
+        for j, other_tank in ipairs(tanks) do
+          other_tank.selected = false
+        end
+        tank.selected = true
+        newly_selected = true
+      end
+    end
+    for j, tank in ipairs(tanks) do
+      if tank.selected == true and newly_selected == false then
+        tank:addWaypoint(x, y)
+      end
     end
   end
 end
@@ -92,7 +102,7 @@ end
 function love.keyreleased(key)
   if key == " " then
     for j, tank in ipairs(tanks) do
-      if tank.active == true then
+      if tank.selected == true then
         projectile = Projectile.create(tank:fire_main_weapon())
         table.insert(projectiles, projectile)
       end
