@@ -3,7 +3,7 @@ function love.load()
   -- Setup Screen/Window
   love.window.setTitle('UnUntitled')
   screen = {}
-  screen.width, screen.height = 800, 600
+  screen.width, screen.height = love.window.getDesktopDimensions(1)
   love.window.setMode(screen.width, screen.height, {resizable=true, minwidth=400, minheight=300})
   -- Setup Variables
   math.randomseed(os.time())
@@ -23,14 +23,15 @@ function love.load()
   Projectile = require("classes.projectile")
   -- Make Tanks
   tanks = {}
+  hidden_tanks = {}
   Tank = require("classes.tank")
   x_position = screen.width/2
   y_position = screen.height/2
   x_bound = screen.width
   y_bound = screen.height
   top_speed = 60
-  projectile_speed = 600
-  projectile_lifespan = 0.3
+  projectile_speed = 200
+  projectile_lifespan = 1
   img3_pth = "small_tank_selected.png"
   img1_pth = "small_blue_tank_base.png"
   img2_pth = "small_blue_tank_turrent.png"
