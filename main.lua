@@ -31,25 +31,25 @@ function love.load()
   top_speed = 60
   projectile_speed = 600
   projectile_lifespan = 0.3
-  img3_pth = "tank_selected.png"
-  img1_pth = "blue_tank_base.png"
-  img2_pth = "blue_tank_turrent.png"
-  img4_pth = "blue_missile.png"
+  img3_pth = "small_tank_selected.png"
+  img1_pth = "small_blue_tank_base.png"
+  img2_pth = "small_blue_tank_turrent.png"
+  img4_pth = "small_blue_missile.png"
   tank1 = Tank.create(x_bound, y_bound, top_speed, projectile_speed, projectile_lifespan, img1_pth, img2_pth, img3_pth, img4_pth)
   tank1:init(1, 0.5, 0.3, 0.5)
-  img1_pth = "green_tank_base.png"
-  img2_pth = "green_tank_turrent.png"
-  img4_pth = "green_missile.png"
+  img1_pth = "small_green_tank_base.png"
+  img2_pth = "small_green_tank_turrent.png"
+  img4_pth = "small_green_missile.png"
   tank2 = Tank.create(x_bound, y_bound, top_speed, projectile_speed, projectile_lifespan, img1_pth, img2_pth, img3_pth, img4_pth)
   tank2:init(2, 0.5, 0.6, 0.5)
-  img1_pth = "red_tank_base.png"
-  img2_pth = "red_tank_turrent.png"
-  img4_pth = "red_missile.png"
+  img1_pth = "small_red_tank_base.png"
+  img2_pth = "small_red_tank_turrent.png"
+  img4_pth = "small_red_missile.png"
   tank3 = Tank.create(x_bound, y_bound, top_speed, projectile_speed, projectile_lifespan, img1_pth, img2_pth, img3_pth, img4_pth)
   tank3:init(3, 0.5, 0.5, 0.5)
-  img1_pth = "black_tank_base.png"
-  img2_pth = "black_tank_turrent.png"
-  img4_pth = "black_missile.png"
+  img1_pth = "small_black_tank_base.png"
+  img2_pth = "small_black_tank_turrent.png"
+  img4_pth = "small_black_missile.png"
   tank4 = Tank.create(x_bound, y_bound, top_speed, projectile_speed, projectile_lifespan, img1_pth, img2_pth, img3_pth, img4_pth)
   tank4:init(4, 0.7, 0.6, 0.2)
   table.insert(tanks, tank1)

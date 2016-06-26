@@ -19,9 +19,10 @@ function Tank.create(x_bound, y_bound, top_speed, projectile_speed, projectile_l
   t.x = {}
   t.y = {}
   t.rotation = {}
-  t.sprite_layer1 = {}
-  t.sprite_layer2 = {}
-  t.sprite_selected = {}
+  t.sprite = {}
+  t.sprite.layer1 = {}
+  t.sprite.layer2 = {}
+  t.sprite.selected = {}
   t.hitbox = {}
   t.id = 0
   t.x.position = 0
@@ -33,9 +34,10 @@ function Tank.create(x_bound, y_bound, top_speed, projectile_speed, projectile_l
   t.top_speed = top_speed
   t.projectile.speed = projectile_speed
   t.projectile.lifespan = projectile_lifespan
-  t.sprite_layer1.img = love.graphics.newImage(img1_pth)
-  t.sprite_layer2.img = love.graphics.newImage(img2_pth)
-  t.sprite_selected.img = love.graphics.newImage(img3_pth)
+
+  t.sprite.layer1.img = love.graphics.newImage(img1_pth)
+  t.sprite.layer2.img = love.graphics.newImage(img2_pth)
+  t.sprite.selected.img = love.graphics.newImage(img3_pth)
   t.projectile.img_path = img4_pth
   t.path_index = 1
   t.x.target = 0
@@ -50,18 +52,18 @@ function Tank.create(x_bound, y_bound, top_speed, projectile_speed, projectile_l
   t.rotation.base_target = 0
   t.rotation.turrent = 0
   t.rotation.turrent_target = 0
-  t.sprite_layer1.width = t.sprite_layer1.img:getWidth()
-  t.sprite_layer1.height = t.sprite_layer1.img:getHeight()
-  t.sprite_layer2.width = t.sprite_layer2.img:getWidth()
-  t.sprite_layer2.height = t.sprite_layer2.img:getHeight()
-  t.sprite_selected.width = t.sprite_selected.img:getWidth()
-  t.sprite_selected.height = t.sprite_selected.img:getHeight()
+  t.sprite.layer1.width = t.sprite.layer1.img:getWidth()
+  t.sprite.layer1.height = t.sprite.layer1.img:getHeight()
+  t.sprite.layer2.width = t.sprite.layer2.img:getWidth()
+  t.sprite.layer2.height = t.sprite.layer2.img:getHeight()
+  t.sprite.selected.width = t.sprite.selected.img:getWidth()
+  t.sprite.selected.height = t.sprite.selected.img:getHeight()
 
   t.hitbox.x_max = 0
   t.hitbox.y_max = 0
   t.hitbox.x_min = 0
   t.hitbox.y_min = 0
-  t.hitbox.offset = math.min(t.sprite_layer1.width/2, t.sprite_layer1.height/2 )
+  t.hitbox.offset = math.min(t.sprite.layer1.width/2, t.sprite.layer1.height/2 )
   return t
 end
 
@@ -98,19 +100,19 @@ end
 -- DRAW THE TANK
 function Tank:drawLayer1(shader)
   love.graphics.setShader(shader)
-  love.graphics.draw(self.sprite_layer1.img, self.x.position, self.y.position, self.rotation.base, 1, 1, self.sprite_layer1.width/2, self.sprite_layer1.height/2)
+  love.graphics.draw(self.sprite.layer1.img, self.x.position, self.y.position, self.rotation.base, 1, 1, self.sprite.layer1.width/2, self.sprite.layer1.height/2)
   love.graphics.setShader()
 end
 
 function Tank:drawHalo(shader)
   love.graphics.setShader(shader)
-  love.graphics.draw(self.sprite_selected.img, self.x.position, self.y.position, self.rotation.base, 1, 1, self.sprite_selected.width/2, self.sprite_selected.height/2)
+  love.graphics.draw(self.sprite.selected.img, self.x.position, self.y.position, self.rotation.base, 1, 1, self.sprite.selected.width/2, self.sprite.selected.height/2)
   love.graphics.setShader()
 end
 
 function Tank:drawLayer2(shader)
   love.graphics.setShader(shader)
-  love.graphics.draw(self.sprite_layer2.img, self.x.position, self.y.position, self.rotation.base + self.rotation.turrent, 1, 1, self.sprite_layer2.width/2, self.sprite_layer2.height/2)
+  love.graphics.draw(self.sprite.layer2.img, self.x.position, self.y.position, self.rotation.base + self.rotation.turrent, 1, 1, self.sprite.layer2.width/2, self.sprite.layer2.height/2)
   love.graphics.setShader()
 end
 
@@ -193,7 +195,7 @@ function Tank:check_for_collision(x, y)
 end
 
 function Tank:fire_main_weapon()
-  data = {self.id, self.projectile.speed, self.projectile.lifespan, self.projectile.img_path, self.x.position, self.y.position, (self.rotation.turrent + self.rotation.base), self.x.bound, self.y.bound, self.sprite_layer2.height*2}
+  data = {self.id, self.projectile.speed, self.projectile.lifespan, self.projectile.img_path, self.x.position, self.y.position, (self.rotation.turrent + self.rotation.base), self.x.bound, self.y.bound, self.sprite.layer2.height*2}
   return data
 end
 
