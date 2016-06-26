@@ -6,9 +6,11 @@ Projectile.__index = Projectile
 function Projectile.create( data )
   local p = {}
   setmetatable( p, Projectile )
-  parent_id, speed, img_pth, x_pos, y_pos, rotation = data[1], data[2], data[3], data[4], data[5], data[6]
+  parent_id, speed, lifespan, img_pth, x_pos, y_pos, rotation = data[1], data[2], data[3], data[4], data[5], data[6], data[7]
   p.x = {}
   p.y = {}
+  p.age = 0
+  p.life_span = lifespan
   p.sprite = {}
   p.rotation = rotation
   p.parent_id = parent_id
@@ -33,6 +35,7 @@ end
 
 -- UPDATE MISSILES
 function Projectile:update(dt)
+  self.age = self.age + dt
   self.x.position = self.x.position + self.x.velocity * dt
   self.y.position = self.y.position + self.y.velocity * dt
 end

@@ -3,7 +3,7 @@ local Tank = {}
 Tank.__index = Tank
 
 -- SET UP THE TANK BOUNDARIES
-function Tank.create(id, x_position, y_position, x_bound, y_bound, top_speed, projectile_speed, img1_pth, img2_pth, img3_pth)
+function Tank.create(x_bound, y_bound, top_speed, projectile_speed, projectile_lifespan, img1_pth, img2_pth, img3_pth, img4_pth)
   -- CONSTANTS AND VARIABLES
   local t = {}
   setmetatable( t, Tank )
@@ -21,19 +21,22 @@ function Tank.create(id, x_position, y_position, x_bound, y_bound, top_speed, pr
   t.rotation = {}
   t.sprite_layer1 = {}
   t.sprite_layer2 = {}
+  t.sprite_selected = {}
   t.hitbox = {}
-  t.id = id
-  t.x.position = x_position
-  t.y.position = y_position
+  t.id = 0
+  t.x.position = 0
+  t.y.position = 0
   t.x.bound = x_bound
   t.y.bound = y_bound
-  t.x.path = {x_position}
-  t.y.path = {y_position}
+  t.x.path = {}
+  t.y.path = {}
   t.top_speed = top_speed
   t.projectile.speed = projectile_speed
+  t.projectile.lifespan = projectile_lifespan
   t.sprite_layer1.img = love.graphics.newImage(img1_pth)
   t.sprite_layer2.img = love.graphics.newImage(img2_pth)
-  t.projectile.img_path = img3_pth
+  t.sprite_selected.img = love.graphics.newImage(img3_pth)
+  t.projectile.img_path = img4_pth
   t.path_index = 1
   t.x.target = 0
   t.x.speed = 0
@@ -51,11 +54,25 @@ function Tank.create(id, x_position, y_position, x_bound, y_bound, top_speed, pr
   t.sprite_layer1.height = t.sprite_layer1.img:getHeight()
   t.sprite_layer2.width = t.sprite_layer2.img:getWidth()
   t.sprite_layer2.height = t.sprite_layer2.img:getHeight()
-  t.hitbox.x_max = t.x.position
-  t.hitbox.y_max = t.y.position
-  t.hitbox.x_min = t.x.position - t.sprite_layer1.width
-  t.hitbox.y_min = t.y.position - t.sprite_layer1.height
+  t.sprite_selected.width = t.sprite_selected.img:getWidth()
+  t.sprite_selected.height = t.sprite_selected.img:getHeight()
+
+  t.hitbox.x_max = 0
+  t.hitbox.y_max = 0
+  t.hitbox.x_min = 0
+  t.hitbox.y_min = 0
+  t.hitbox.offset = math.min(t.sprite_layer1.width/2, t.sprite_layer1.height/2 )
   return t
+end
+
+function Tank:init(id, x, y, theta)
+  self.id = id
+  self.x.position = x * self.x.bound
+  self.y.position = y * self.y.bound
+  self.x.path = {self.x.position}
+  self.y.path = {self.y.position}
+  self.rotation.base = theta
+  self.rotation.base_target = theta
 end
 
 function Tank:debug_view()
@@ -81,31 +98,39 @@ end
 -- DRAW THE TANK
 function Tank:drawLayer1(shader)
   love.graphics.setShader(shader)
-  love.graphics.draw(self.sprite_layer1.img, self.x.position - math.floor(self.sprite_layer1.width/2), self.y.position - math.floor(self.sprite_layer1.height/2), self.rotation.base, 1, 1, self.sprite_layer1.width/2, self.sprite_layer1.height/2)
+  love.graphics.draw(self.sprite_layer1.img, self.x.position, self.y.position, self.rotation.base, 1, 1, self.sprite_layer1.width/2, self.sprite_layer1.height/2)
+  love.graphics.setShader()
+end
+
+function Tank:drawHalo(shader)
+  love.graphics.setShader(shader)
+  love.graphics.draw(self.sprite_selected.img, self.x.position, self.y.position, self.rotation.base, 1, 1, self.sprite_selected.width/2, self.sprite_selected.height/2)
   love.graphics.setShader()
 end
 
 function Tank:drawLayer2(shader)
   love.graphics.setShader(shader)
-  love.graphics.draw(self.sprite_layer2.img, self.x.position  - math.floor(self.sprite_layer1.width/2), self.y.position  - math.floor(self.sprite_layer1.height/2), self.rotation.base + self.rotation.turrent, 1, 1, self.sprite_layer2.width/2, self.sprite_layer2.height/2)
+  love.graphics.draw(self.sprite_layer2.img, self.x.position, self.y.position, self.rotation.base + self.rotation.turrent, 1, 1, self.sprite_layer2.width/2, self.sprite_layer2.height/2)
   love.graphics.setShader()
 end
 
 -- ROTATE UPPER LAYER
 function Tank:rotate_turrent()
-  if self.rotation.turrent_target > math.rad(110) then
-    self.rotation.turrent_target = math.rad(100)
-  elseif self.rotation.turrent_target < 0 - math.rad(110) then
-    self.rotation.turrent_target = 0 - math.rad(100)
-  end
-  if love.keyboard.isDown("lshift") then
-    self.rotation.turrent_target  = 0
-  end
-  if love.keyboard.isDown("q") then
-    self.rotation.turrent_target = self.rotation.turrent_target - 0.1
-  end
-  if love.keyboard.isDown("e") then
-    self.rotation.turrent_target = self.rotation.turrent_target + 0.1
+  if self.selected == true then
+    if self.rotation.turrent_target > math.rad(110) then
+      self.rotation.turrent_target = math.rad(100)
+    elseif self.rotation.turrent_target < 0 - math.rad(110) then
+      self.rotation.turrent_target = 0 - math.rad(100)
+    end
+    if love.keyboard.isDown("lshift") then
+      self.rotation.turrent_target  = 0
+    end
+    if love.keyboard.isDown("q") then
+      self.rotation.turrent_target = self.rotation.turrent_target - 0.1
+    end
+    if love.keyboard.isDown("e") then
+      self.rotation.turrent_target = self.rotation.turrent_target + 0.1
+    end
   end
 end
 
@@ -168,9 +193,7 @@ function Tank:check_for_collision(x, y)
 end
 
 function Tank:fire_main_weapon()
-  x_position = self.x.position - self.sprite_layer1.width/2
-  y_position = self.y.position - self.sprite_layer1.height/2
-  data = {self.id, self.projectile.speed, self.projectile.img_path, x_position, y_position, (self.rotation.turrent + self.rotation.base), self.x.bound, self.y.bound, self.sprite_layer2.height*2}
+  data = {self.id, self.projectile.speed, self.projectile.lifespan, self.projectile.img_path, self.x.position, self.y.position, (self.rotation.turrent + self.rotation.base), self.x.bound, self.y.bound, self.sprite_layer2.height*2}
   return data
 end
 
@@ -185,20 +208,24 @@ end
 
 -- EXCITING INERTIAL WASD CONTROL
 function Tank:userControl()
-  if love.keyboard.isDown("left", "a", "right", "d", "up", "w", "down", "s") then
-    self.autonomous = false
-    self.y.target = self.y.position
-    self.x.target = self.x.position
-  end
-  if love.keyboard.isDown("left", "a") then
-    self:turn_left()
-  elseif love.keyboard.isDown("right", "d") then
-    self:turn_right()
-  end
-  if love.keyboard.isDown("up", "w") then
-    self:forwards()
-  elseif love.keyboard.isDown("down", "s") then
-    self:backwards()
+  if self.selected == true then
+    if love.keyboard.isDown("left", "a", "right", "d", "up", "w", "down", "s") then
+      self.autonomous = false
+      self.y.target = self.y.position
+      self.x.target = self.x.position
+    end
+    if love.keyboard.isDown("left", "a") then
+      self:turn_left()
+    elseif love.keyboard.isDown("right", "d") then
+      self:turn_right()
+    end
+    if love.keyboard.isDown("up", "w") then
+      self:forwards()
+    elseif love.keyboard.isDown("down", "s") then
+      self:backwards()
+    else
+      self:slow_to_stop()
+    end
   else
     self:slow_to_stop()
   end
@@ -209,8 +236,8 @@ function Tank:setTarget(x, y)
   prior_rotations = math.rad(360)*(math.floor((self.rotation.base + math.rad(180))/math.rad(360)))
   rotation = 0
   self.autonomous = true
-  self.y.target = y + self.sprite_layer1.height/2
-  self.x.target = x + self.sprite_layer1.width/2
+  self.y.target = y
+  self.x.target = x
   rise = self.y.target - self.y.position
   run = self.x.target - self.x.position
   angle = math.atan(rise/run)
@@ -256,6 +283,12 @@ function Tank:approachTarget(dt)
 end
 
 function Tank:addWaypoint(x, y)
+  if self.autonomous ~= true then
+    self.autonomous = true
+    self.path_index = 1
+    self.x.path = {self.x.position}
+    self.y.path = {self.y.position}
+  end
   if x ~= nil and y ~= nil then
     table.insert(self.x.path, x)
     table.insert(self.y.path, y)
@@ -278,20 +311,20 @@ function Tank:update(dt, speed_modifier)
   if math.abs(self.rotation.base - self.rotation.base_target) < self.acceptable_rad_error then
     self.x.position = self.x.position + self.x.velocity * dt * speed_modifier
     self.y.position = self.y.position + self.y.velocity * dt * speed_modifier
-    self.hitbox.x_max = self.x.position
-    self.hitbox.y_max = self.y.position
-    self.hitbox.x_min = self.x.position - self.sprite_layer1.width
-    self.hitbox.y_min = self.y.position - self.sprite_layer1.height
+    self.hitbox.x_max = self.x.position + self.hitbox.offset
+    self.hitbox.y_max = self.y.position + self.hitbox.offset
+    self.hitbox.x_min = self.x.position - self.hitbox.offset
+    self.hitbox.y_min = self.y.position - self.hitbox.offset
     -- CHECK POSITION WITHIN BOUNDS
     if self.hitbox.x_max > self.x.bound then
-      self.x.position = self.x.bound
+      self.x.position = self.x.bound - self.hitbox.offset
     elseif self.hitbox.x_min < 0 then
-      self.x.position = self.sprite_layer1.width
+      self.x.position = self.hitbox.offset
     end
     if self.hitbox.y_max > self.y.bound then
-      self.y.position = self.y.bound
+      self.y.position = self.y.bound - self.hitbox.offset
     elseif self.hitbox.y_min < 0 then
-      self.y.position = self.sprite_layer1.height
+      self.y.position = self.hitbox.offset
     end
   end
   self.rotation.turrent = self:controlDampener(self.rotation.turrent, self.rotation.turrent_target, self.rot_gain)

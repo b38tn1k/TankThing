@@ -1,52 +1,75 @@
+require "events"
 function love.load()
-  math.randomseed(os.time())
+  -- Setup Screen/Window
   love.window.setTitle('UnUntitled')
   screen = {}
   screen.width, screen.height = 800, 600
   love.window.setMode(screen.width, screen.height, {resizable=true, minwidth=400, minheight=300})
-  -- Make Shader
-  myShader = love.graphics.newShader("brighterrgb.glsl")
-  World = require("classes.world")
-  world = World.create(screen.width, screen.height)
-  worldseed = world:newSeed()
-  world:generateAndRender(myShader)
-  Projectile = require("classes.projectile")
-  Tank = require("classes.tank")
+  -- Setup Variables
+  math.randomseed(os.time())
   time = 0
+  -- Make Shader(s)
+  myShader = love.graphics.newShader("brighterrgb.glsl")
+  flasher = love.graphics.newShader("flasher.glsl")
+  -- Make World
+  occupancy_resolution = 5
+  World = require("classes.world")
+  world = World.create(screen.width, screen.height, occupancy_resolution)
+  worldseed = world:newSeed()
+  occupancy_grid = world:generate()
+  world:makeCanvas(myShader)
+  -- Make Projectiles
   projectiles = {}
+  Projectile = require("classes.projectile")
+  -- Make Tanks
   tanks = {}
-  -- SETUP TANKS
+  Tank = require("classes.tank")
   x_position = screen.width/2
   y_position = screen.height/2
   x_bound = screen.width
   y_bound = screen.height
-  top_speed = 300
+  top_speed = 60
   projectile_speed = 600
+  projectile_lifespan = 0.3
+  img3_pth = "tank_selected.png"
   img1_pth = "blue_tank_base.png"
   img2_pth = "blue_tank_turrent.png"
-  img3_pth = "blue_missile.png"
-  tank1 = Tank.create(1, x_position, y_position, x_bound, y_bound, top_speed, projectile_speed, img1_pth, img2_pth, img3_pth)
-  tank1.selected = true
-  tank2 = Tank.create(2, x_position - 200, y_position + 200, x_bound, y_bound, top_speed, projectile_speed, img1_pth, img2_pth, img3_pth)
-  tank3 = Tank.create(3, x_position + 200, y_position + 200, x_bound, y_bound, top_speed, projectile_speed, img1_pth, img2_pth, img3_pth)
+  img4_pth = "blue_missile.png"
+  tank1 = Tank.create(x_bound, y_bound, top_speed, projectile_speed, projectile_lifespan, img1_pth, img2_pth, img3_pth, img4_pth)
+  tank1:init(1, 0.5, 0.3, 0.5)
+  img1_pth = "green_tank_base.png"
+  img2_pth = "green_tank_turrent.png"
+  img4_pth = "green_missile.png"
+  tank2 = Tank.create(x_bound, y_bound, top_speed, projectile_speed, projectile_lifespan, img1_pth, img2_pth, img3_pth, img4_pth)
+  tank2:init(2, 0.5, 0.6, 0.5)
+  img1_pth = "red_tank_base.png"
+  img2_pth = "red_tank_turrent.png"
+  img4_pth = "red_missile.png"
+  tank3 = Tank.create(x_bound, y_bound, top_speed, projectile_speed, projectile_lifespan, img1_pth, img2_pth, img3_pth, img4_pth)
+  tank3:init(3, 0.5, 0.5, 0.5)
+  img1_pth = "black_tank_base.png"
+  img2_pth = "black_tank_turrent.png"
+  img4_pth = "black_missile.png"
+  tank4 = Tank.create(x_bound, y_bound, top_speed, projectile_speed, projectile_lifespan, img1_pth, img2_pth, img3_pth, img4_pth)
+  tank4:init(4, 0.7, 0.6, 0.2)
   table.insert(tanks, tank1)
   table.insert(tanks, tank2)
   table.insert(tanks, tank3)
+  table.insert(tanks, tank4)
 end
 
 function love.update(dt)
   time = time + dt
+  flasher:send("time", time)
   for j, tank in ipairs(tanks) do
-    if tank.selected == true then
-      tank:userControl()
-      tank:rotate_turrent()
-    end
+    tank:userControl()
+    tank:rotate_turrent()
     tank:approachTarget(dt)
     tank:update(dt, 1)
   end
   for i, projectile in ipairs(projectiles) do
-    -- Remove Projectiles that leave screen (TODO: fix magic numbers due to sprite)
-    if projectile.x.position > screen.width or projectile.x.position < 0 or projectile.y.position > screen.height or projectile.y.position < 0 then
+    -- Remove Projectiles that leave screen or are too old
+    if projectile.x.position > screen.width or projectile.x.position < 0 or projectile.y.position > screen.height or projectile.y.position < 0 or projectile.age > projectile.life_span then
       table.remove(projectiles, i)
     else
       projectile:update(dt)
@@ -62,68 +85,18 @@ function love.update(dt)
 end
 
 function love.draw()
-  love.graphics.reset()
-  world:draw()
-  for j, tank in ipairs(tanks) do
-    tank:drawLayer1()
-    if tank.selected == true then
-      tank:debug_view()
-    end
-  end
-  for i, projectile in ipairs(projectiles) do
-    projectile:draw()
-  end
-  for j, tank in ipairs(tanks) do
-    tank:drawLayer2()
-  end
-  -- love.graphics.setShader()
-end
-
-function love.mousepressed(x, y, button, istouch)
-  if button == 'l' then
-    newly_selected = false
+    world:draw()
     for j, tank in ipairs(tanks) do
-      if tank:check_for_collision(x, y) then
-        for j, other_tank in ipairs(tanks) do
-          other_tank.selected = false
-        end
-        tank.selected = true
-        newly_selected = true
+      if tank.selected then
+        tank:drawHalo(flasher)
       end
+      tank:drawLayer1()
+    end
+    for i, projectile in ipairs(projectiles) do
+      projectile:draw()
     end
     for j, tank in ipairs(tanks) do
-      if tank.selected == true and newly_selected == false then
-        tank:addWaypoint(x, y)
-      end
+      tank:drawLayer2()
     end
-  end
-end
-
-function love.keyreleased(key)
-  if key == " " then
-    for j, tank in ipairs(tanks) do
-      if tank.selected == true then
-        projectile = Projectile.create(tank:fire_main_weapon())
-        table.insert(projectiles, projectile)
-      end
-    end
-  end
-  if key == "r" then
-    worldseed = world:newSeed()
-    world:generateAndRender(myShader)
-  end
-  if key == "escape" then
-    love.event.quit( )
-  end
-end
-
-function love.resize(w, h)
-  screen.width, screen.height = w, h
-  world = World.create(screen.width, screen.height)
-  world.seed = worldseed
-  world:generateAndRender(myShader)
-  for j, tank in ipairs(tanks) do
-    tank.x.bound = screen.width
-    tank.y.bound = screen.height
-  end
+    love.graphics.reset()
 end

@@ -4,7 +4,7 @@ World.__index = World
 
 -- TODO: clean this - make a 'render world' method and seperate it from the creation section
 
-function World.create(width, height)
+function World.create(width, height, occupancy_resolution)
   local w = {}
   setmetatable(w, World)
   math.randomseed(os.time() * 1000)
@@ -28,6 +28,9 @@ function World.create(width, height)
   w.beach = 0.33
   w.low_land = 0.5
   w.mid_land = 0.7
+  w.occupyable = w.beach --spelling? lol
+  w.occupancy_grid = {}
+  w.occupancy_resolution = occupancy_resolution
 
   return w
 end
@@ -39,27 +42,43 @@ function World:newSeed()
   return self.seed
 end
 
-function World:generateAndRender(shader)
-love.graphics.setShader(shader)
+function World:generate()
   base_layer = 0
   lump_layer = 0
   more_lumps = 0
   -- Create the Height Map
   for i = 1, self.width do
-      self.map[i] = {}
-      for j = 1, self.height do
-        base_layer = self.amplitude[1] * love.math.noise(self.scale[1] * i + self.seed[1], self.scale[1] * j + self.seed[1])
-        lump_layer = self.amplitude[2] * love.math.noise(self.scale[2] * i + self.seed[2], self.scale[2] * j + self.seed[2])
-        more_lumps = self.amplitude[3] * love.math.noise(self.scale[3] * i + self.seed[3], self.scale[3] * j + self.seed[3])
-        self.map[i][j] = base_layer + lump_layer + more_lumps
-      end
+    self.map[i] = {}
+    for j = 1, self.height do
+      base_layer = self.amplitude[1] * love.math.noise(self.scale[1] * i + self.seed[1], self.scale[1] * j + self.seed[1])
+      lump_layer = self.amplitude[2] * love.math.noise(self.scale[2] * i + self.seed[2], self.scale[2] * j + self.seed[2])
+      more_lumps = self.amplitude[3] * love.math.noise(self.scale[3] * i + self.seed[3], self.scale[3] * j + self.seed[3])
+      self.map[i][j] = base_layer + lump_layer + more_lumps
+    end
   end
+  -- Create the Occupancy Grid
+  for i = 1, self.width, self.occupancy_resolution do
+    self.occupancy_grid[(i + 4) / 5] = {}
+    for j = 1, self.height, self.occupancy_resolution do
+      if self.map[i][j] > self.occupyable then
+        self.occupancy_grid[(i + 4) / 5][(j + 4)/5] = 1
+      else
+        self.occupancy_grid[(i + 4) / 5][(j + 4)/5] = 100
+      end
+    end
+  end
+  return self.occupancy_grid
+end
+
+function World:makeCanvas(shader)
+  love.graphics.setShader(shader)
   -- Draw the Height Map to a canvas
   self.canvas = love.graphics.newCanvas(self.width, self.height)
   love.graphics.setCanvas(self.canvas)
+  colors = {}
   -- Render Base Image
-  for i = 1, self.width do
-    for j = 1, self.height do
+  for i = 1, self.width, self.occupancy_resolution do
+    for j = 1, self.height, self.occupancy_resolution do
       if self.map[i][j] < self.deep_water then
         color = self:mix(self.color.dark_blue, self.color.dark_blue, self.map[i][j], self.deep_water, 0.0)
         love.graphics.setColor(color)
@@ -79,11 +98,24 @@ love.graphics.setShader(shader)
         color = self:mix(self.color.green, self.color.dark_green, self.map[i][j], 1.0, self.mid_land)
         love.graphics.setColor(color)
       end
-      love.graphics.point( i - 1, j - 1 )
+      -- love.graphics.point( i - 1, j - 1 )
+      love.graphics.rectangle("fill", i-1, j-1, self.occupancy_resolution, self.occupancy_resolution)
+
     end
   end
   love.graphics.setCanvas()
   love.graphics.setShader()
+end
+
+function World:drawDebug()
+  love.graphics.setColor(200, 200, 255, 255)
+  for i = 1, self.width, self.occupancy_resolution do
+    for j = 1, self.height, self.occupancy_resolution do
+      if self.occupancy_grid[(i + 4) / 5][(j + 4)/5] == 1 then
+        love.graphics.rectangle("fill", i, j, 2, 2)
+      end
+    end
+  end
 end
 
 function World:mix(color1, color2, val, max, min)
