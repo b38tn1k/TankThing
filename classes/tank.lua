@@ -309,7 +309,10 @@ function Tank:addWaypoint(x, y)
       for i, node in ipairs(more_path) do
         table.insert(self.x.path, node.x * self.map_resolution)
         table.insert(self.y.path, node.y * self.map_resolution)
+        self.path_length = self.path_length + 1
       end
+      table.insert(self.x.path, x)
+      table.insert(self.y.path, y)
       self.path_length = self.path_length + 1
     end
   end

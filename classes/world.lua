@@ -28,7 +28,7 @@ function World.create(width, height, occupancy_resolution)
   w.beach = 0.33
   w.low_land = 0.5
   w.mid_land = 0.7
-  w.occupyable = (w.beach + w.low_land)/2 --spelling? lol
+  w.traversable = (w.beach + w.shallow_water)/2 --spelling? lol
   w.occupancy_grid = {}
   w.occupancy_resolution = occupancy_resolution
 
@@ -63,11 +63,7 @@ function World:generate()
       node = {}
       node.x = x
       node.y = (j + 4) / 5
-      node.f = nil -- this stuff is just so I feel better about myself
-      node.g = nil
-      node.h = nil
-      node.parent = {}
-      if self.map[i][j] > self.occupyable then
+      if self.map[i][j] > self.traversable then
         table.insert(self.occupancy_grid, node)
       end
     end
@@ -82,8 +78,8 @@ function World:makeCanvas(shader)
   love.graphics.setCanvas(self.canvas)
   colors = {}
   -- Render Base Image
-  for i = 1, self.width, self.occupancy_resolution do
-    for j = 1, self.height, self.occupancy_resolution do
+  for i = 1, self.width, 5 do
+    for j = 1, self.height, 5 do
       if self.map[i][j] < self.deep_water then
         color = self:mix(self.color.dark_blue, self.color.dark_blue, self.map[i][j], self.deep_water, 0.0)
         love.graphics.setColor(color)
@@ -104,7 +100,7 @@ function World:makeCanvas(shader)
         love.graphics.setColor(color)
       end
       -- love.graphics.point( i - 1, j - 1 )
-      love.graphics.rectangle("fill", i-1, j-1, self.occupancy_resolution, self.occupancy_resolution)
+      love.graphics.rectangle("fill", i-1, j-1, 5, 5)
 
     end
   end
