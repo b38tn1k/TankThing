@@ -28,7 +28,7 @@ function World.create(width, height, occupancy_resolution)
   w.beach = 0.33
   w.low_land = 0.5
   w.mid_land = 0.7
-  w.occupyable = w.beach --spelling? lol
+  w.occupyable = (w.beach + w.low_land)/2 --spelling? lol
   w.occupancy_grid = {}
   w.occupancy_resolution = occupancy_resolution
 
@@ -56,14 +56,19 @@ function World:generate()
       self.map[i][j] = base_layer + lump_layer + more_lumps
     end
   end
-  -- Create the Occupancy Grid
+  -- Create the low res Occupancy Grid
   for i = 1, self.width, self.occupancy_resolution do
-    self.occupancy_grid[(i + 4) / 5] = {}
+    x = (i + 4) / 5
     for j = 1, self.height, self.occupancy_resolution do
+      node = {}
+      node.x = x
+      node.y = (j + 4) / 5
+      node.f = nil -- this stuff is just so I feel better about myself
+      node.g = nil
+      node.h = nil
+      node.parent = {}
       if self.map[i][j] > self.occupyable then
-        self.occupancy_grid[(i + 4) / 5][(j + 4)/5] = 1
-      else
-        self.occupancy_grid[(i + 4) / 5][(j + 4)/5] = 100
+        table.insert(self.occupancy_grid, node)
       end
     end
   end

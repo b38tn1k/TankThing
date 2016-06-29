@@ -41,10 +41,11 @@ function love.resize(w, h)
   screen.width, screen.height = w, h
   world = World.create(screen.width, screen.height, occupancy_resolution)
   world.seed = worldseed
-  world:generate(myShader)
+  new_map = world:generate(myShader)
   world:makeCanvas(myShader)
   to_remove = {}
   for i, tank in ipairs(hidden_tanks) do
+    tank.map = new_map
     if tank.x.position < screen.width or tank.y.position < screen.height then
       table.insert(tanks, tank)
       table.insert(to_remove, i)
@@ -55,6 +56,7 @@ function love.resize(w, h)
   end
   to_remove = {}
   for j, tank in ipairs(tanks) do
+    tank.map = new_map
     if tank.x.position > screen.width or tank.y.position > screen.height then
       table.insert(hidden_tanks, tank)
       table.insert(to_remove, j)

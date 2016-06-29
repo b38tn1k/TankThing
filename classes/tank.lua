@@ -3,7 +3,7 @@ local Tank = {}
 Tank.__index = Tank
 
 -- SET UP THE TANK BOUNDARIES
-function Tank.create(x_bound, y_bound, top_speed, projectile_speed, projectile_lifespan, img1_pth, img2_pth, img3_pth, img4_pth)
+function Tank.create(x_bound, y_bound, top_speed, projectile_speed, projectile_lifespan, map, map_res, img1_pth, img2_pth, img3_pth, img4_pth)
   -- CONSTANTS AND VARIABLES
   local t = {}
   setmetatable( t, Tank )
@@ -31,15 +31,17 @@ function Tank.create(x_bound, y_bound, top_speed, projectile_speed, projectile_l
   t.y.bound = y_bound
   t.x.path = {}
   t.y.path = {}
+  t.path_length = 1
+  t.path_index = 1
+  t.map = map
+  t.map_resolution = map_res
   t.top_speed = top_speed
   t.projectile.speed = projectile_speed
   t.projectile.lifespan = projectile_lifespan
-
   t.sprite.layer1.img = love.graphics.newImage(img1_pth)
   t.sprite.layer2.img = love.graphics.newImage(img2_pth)
   t.sprite.selected.img = love.graphics.newImage(img3_pth)
   t.projectile.img_path = img4_pth
-  t.path_index = 1
   t.x.target = 0
   t.x.speed = 0
   t.x.velocity = 0
@@ -58,7 +60,6 @@ function Tank.create(x_bound, y_bound, top_speed, projectile_speed, projectile_l
   t.sprite.layer2.height = t.sprite.layer2.img:getHeight()
   t.sprite.selected.width = t.sprite.selected.img:getWidth()
   t.sprite.selected.height = t.sprite.selected.img:getHeight()
-
   t.hitbox.x_max = 0
   t.hitbox.y_max = 0
   t.hitbox.x_min = 0
@@ -71,8 +72,8 @@ function Tank:init(id, x, y, theta)
   self.id = id
   self.x.position = x * self.x.bound
   self.y.position = y * self.y.bound
-  self.x.path = {self.x.position}
-  self.y.path = {self.y.position}
+  table.insert(self.x.path, self.x.position)
+  table.insert(self.y.path, self.y.position)
   self.rotation.base = theta
   self.rotation.base_target = theta
 end
@@ -269,10 +270,10 @@ end
 
 -- MOVE TOWARDS TARGET
 function Tank:approachTarget(dt)
-  x_pos_poscont_contrib = self:controlDampener(self.x.position, self.x.target, self.vel_gain)
-  y_pos_poscont_contrib = self:controlDampener(self.y.position, self.y.target, self.vel_gain)
-  delta_x = (x_pos_poscont_contrib - self.x.position) / dt
-  delta_y = (y_pos_poscont_contrib - self.y.position) / dt
+  local x_pos_poscont_contrib = self:controlDampener(self.x.position, self.x.target, self.vel_gain)
+  local y_pos_poscont_contrib = self:controlDampener(self.y.position, self.y.target, self.vel_gain)
+  local delta_x = (x_pos_poscont_contrib - self.x.position) / dt
+  local delta_y = (y_pos_poscont_contrib - self.y.position) / dt
   if self.autonomous then
     self.x.velocity = self:closestToZero(delta_x, self.x.speed)
     self.y.velocity = self:closestToZero(delta_y, self.y.speed)
@@ -284,30 +285,115 @@ function Tank:approachTarget(dt)
   end
 end
 
+-- add another node to the tanks path
 function Tank:addWaypoint(x, y)
-  if self.autonomous ~= true then
-    self.autonomous = true
-    self.path_index = 1
-    self.x.path = {self.x.position}
-    self.y.path = {self.y.position}
-  end
-  if x ~= nil and y ~= nil then
-    table.insert(self.x.path, x)
-    table.insert(self.y.path, y)
+
+  local scaled_x_start = math.floor(self.x.path[self.path_length]/self.map_resolution)
+  local scaled_y_start = math.floor(self.y.path[self.path_length]/self.map_resolution)
+  local start = find_node(scaled_x_start, scaled_y_start, self.map)
+
+  local scaled_x_goal = math.floor(x/self.map_resolution)
+  local scaled_y_goal = math.floor(y/self.map_resolution)
+  local goal = find_node(scaled_x_goal, scaled_y_goal, self.map)
+
+  if goal then
+    if self.autonomous ~= true then
+      self.autonomous = true
+      self.path_index = 1
+      self.path_length = 1
+      self.x.path = {self.x.position}
+      self.y.path = {self.y.position}
+    end
+    if x ~= nil and y ~= nil then
+      more_path = Astar(start, goal, self.map)
+      for i, node in ipairs(more_path) do
+        table.insert(self.x.path, node.x * self.map_resolution)
+        table.insert(self.y.path, node.y * self.map_resolution)
+      end
+      self.path_length = self.path_length + 1
+    end
   end
 end
 
--- DRIFT TOWARDS MOUSE
-function Tank:followMouse(dt)
-  x_pos_poscont_contrib = self:controlDampener(self.x.position, self.x.target, self.vel_gain)
-  y_pos_poscont_contrib = self:controlDampener(self.y.position, self.y.target, self.vel_gain)
-  delta_x = (x_pos_poscont_contrib - self.x.position) / dt
-  delta_y = (y_pos_poscont_contrib - self.y.position) / dt
-  self.x.velocity = delta_x
-  self.y.velocity = delta_y
+function find_node(x, y, map)
+  local node = nil
+  for i, a_node in ipairs(map) do
+    if a_node.x == x and a_node.y == y then
+      node = a_node
+    end
+  end
+  return node
 end
 
--- APPLY MOVEMENT and stuff. pass world, other players into this function
+-- Find Neighbouring nodes in the map
+function find_neighbours(node, map)
+  local neighbours = {}
+  y = node.y
+  x = node.x
+  for _, a_node in ipairs(map) do
+    if (a_node.x == x or a_node.x == x - 1 or a_node.x == x + 1) and (a_node.y == y or a_node.y == y + 1 or a_node.y == y - 1) and not (a_node.x == x and a_node.y == y) then
+      table.insert(neighbours, a_node)
+    end
+  end
+  return neighbours
+end
+
+-- Find lazy non euclid distance
+function heuristic_distance(a, b)
+  return ((b.x - a.x) * (b.x - a.x)) + ((b.y - a.y) * (b.y - a.y))
+end
+
+-- A* algorithim accepts start node and goal node arguements as {x_scaled, y_scaled} and map as a map
+function Astar(start, goal, map)
+  local open = {}
+  local closed = {}
+  start.g = 0
+  start.h = heuristic_distance(start, goal)
+  start.f = start.g + start.h
+  table.insert(open, start)
+  while not(next(open) == nil) do
+    -- find node with smallest f!
+    to_remove = 1
+    q = open[to_remove]
+    for i, node in ipairs(open) do
+      if node.f < q.f then
+        q = node
+        to_remove = i
+      end
+    end
+    table.remove(open, to_remove)
+    -- find the neighbours of q and set them up
+    for j, neighbour in ipairs(find_neighbours(q, map)) do
+      if neighbour.x == goal.x and neighbour.y == goal.y then
+        open = {}
+        break
+      end
+      neighbour.g = q.g + heuristic_distance(neighbour, q)
+      neighbour.h = heuristic_distance(neighbour, goal)
+      neighbour.f = neighbour.g + neighbour.h
+      -- check for duplicates in open and closed lists
+      local add = true
+      for _, a_node in ipairs(open) do
+        if neighbour.x == a_node.x and neighbour.y == a_node.y then
+          add = false
+        end
+      end
+      for _, a_node in ipairs(closed) do
+        if neighbour.x == a_node.x and neighbour.y == a_node.y then
+          add = false
+        end
+      end
+      if add == true then
+        table.insert(open, neighbour)
+      end
+    end
+    -- add q to the closed list
+    table.insert(closed, q)
+  end
+  return closed
+end
+
+-- APPLY MOVEMENT and stuff
 function Tank:update(dt, speed_modifier)
   -- MOVE
   if math.abs(self.rotation.base - self.rotation.base_target) < self.acceptable_rad_error then
