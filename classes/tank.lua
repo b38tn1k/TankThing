@@ -70,8 +70,8 @@ end
 
 function Tank:init(id, x, y, theta)
   self.id = id
-  self.x.position = x * self.x.bound
-  self.y.position = y * self.y.bound
+  self.x.position = x
+  self.y.position = y 
   table.insert(self.x.path, self.x.position)
   table.insert(self.y.path, self.y.position)
   self.rotation.base = theta

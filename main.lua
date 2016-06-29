@@ -38,22 +38,26 @@ function love.load()
   img2_pth = "small_blue_tank_turrent.png"
   img4_pth = "small_blue_missile.png"
   tank1 = Tank.create(x_bound, y_bound, top_speed, projectile_speed, projectile_lifespan, occupancy_grid, occupancy_resolution, img1_pth, img2_pth, img3_pth, img4_pth)
-  tank1:init(1, 0.5, 0.3, 0.5)
   img1_pth = "small_green_tank_base.png"
   img2_pth = "small_green_tank_turrent.png"
   img4_pth = "small_green_missile.png"
   tank2 = Tank.create(x_bound, y_bound, top_speed, projectile_speed, projectile_lifespan, occupancy_grid, occupancy_resolution, img1_pth, img2_pth, img3_pth, img4_pth)
-  tank2:init(2, 0.5, 0.6, 0.5)
   img1_pth = "small_red_tank_base.png"
   img2_pth = "small_red_tank_turrent.png"
   img4_pth = "small_red_missile.png"
   tank3 = Tank.create(x_bound, y_bound, top_speed, projectile_speed, projectile_lifespan, occupancy_grid, occupancy_resolution, img1_pth, img2_pth, img3_pth, img4_pth)
-  tank3:init(3, 0.5, 0.5, 0.5)
   img1_pth = "small_black_tank_base.png"
   img2_pth = "small_black_tank_turrent.png"
   img4_pth = "small_black_missile.png"
   tank4 = Tank.create(x_bound, y_bound, top_speed, projectile_speed, projectile_lifespan, occupancy_grid, occupancy_resolution, img1_pth, img2_pth, img3_pth, img4_pth)
-  tank4:init(4, 0.7, 0.6, 0.2)
+  random_node = math.random( #occupancy_grid)
+  tank1:init(1, occupancy_grid[random_node].x * occupancy_resolution, occupancy_grid[random_node].y * occupancy_resolution, 0.5)
+  random_node = math.random( #occupancy_grid)
+  tank2:init(2, occupancy_grid[random_node].x * occupancy_resolution, occupancy_grid[random_node].y * occupancy_resolution, 0.5)
+  random_node = math.random( #occupancy_grid)
+  tank3:init(3, occupancy_grid[random_node].x * occupancy_resolution, occupancy_grid[random_node].y * occupancy_resolution, 0.5)
+  random_node = math.random( #occupancy_grid)
+  tank4:init(4, occupancy_grid[random_node].x * occupancy_resolution, occupancy_grid[random_node].y * occupancy_resolution, 0.5)
   table.insert(tanks, tank1)
   table.insert(tanks, tank2)
   table.insert(tanks, tank3)
