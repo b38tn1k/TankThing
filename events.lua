@@ -31,6 +31,17 @@ function love.keyreleased(key)
     worldseed = world:newSeed()
     occupancy_grid = world:generate()
     world:makeCanvas(myShader)
+    for i, tank in ipairs(tanks) do
+      tank.x.path = {tank.x.position}
+      tank.y.path = {tank.y.position}
+      tank.x.target = tank.x.position
+      tank.y.target = tank.y.position
+      tank.path_index = 1
+      tank.path_length = 1
+      tank.map = occupancy_grid
+      tank.x.velocity = 0
+      tank.y.velocity = 0
+    end
   end
   if key == "escape" then
     love.event.quit( )
@@ -39,7 +50,7 @@ end
 
 function love.resize(w, h)
   screen.width, screen.height = w, h
-  world = World.create(screen.width, screen.height, occupancy_resolution)
+  world = World.create(screen.width, screen.height, occupancy_resolution, render_resolution)
   world.seed = worldseed
   new_map = world:generate(myShader)
   world:makeCanvas(myShader)

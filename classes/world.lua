@@ -4,7 +4,7 @@ World.__index = World
 
 -- TODO: clean this - make a 'render world' method and seperate it from the creation section
 
-function World.create(width, height, occupancy_resolution)
+function World.create(width, height, occupancy_resolution, render_resolution)
   local w = {}
   setmetatable(w, World)
   math.randomseed(os.time() * 1000)
@@ -13,7 +13,7 @@ function World.create(width, height, occupancy_resolution)
   end
   w.seed = {}
   w.map = {}
-  w.amplitude = {0.6, 0.3, 0.1}
+  w.amplitude = {0.6, 0.3, 0.05}
   w.scale = {0.001, 0.006, 0.04}
   w.width, w.height = width, height
   w.color = {}
@@ -28,9 +28,10 @@ function World.create(width, height, occupancy_resolution)
   w.beach = 0.33
   w.low_land = 0.5
   w.mid_land = 0.7
-  w.traversable = (w.beach + w.shallow_water)/2 --spelling? lol
+  w.traversable = (w.low_land + w.beach)/2
   w.occupancy_grid = {}
   w.occupancy_resolution = occupancy_resolution
+  w.render_resolution = render_resolution
 
   return w
 end
@@ -58,11 +59,11 @@ function World:generate()
   end
   -- Create the low res Occupancy Grid
   for i = 1, self.width, self.occupancy_resolution do
-    x = (i + 4) / 5
+    x = (i + self.occupancy_resolution - 1) / self.occupancy_resolution
     for j = 1, self.height, self.occupancy_resolution do
       node = {}
       node.x = x
-      node.y = (j + 4) / 5
+      node.y = (j + self.occupancy_resolution - 1) / self.occupancy_resolution
       if self.map[i][j] > self.traversable then
         table.insert(self.occupancy_grid, node)
       end
@@ -78,8 +79,8 @@ function World:makeCanvas(shader)
   love.graphics.setCanvas(self.canvas)
   colors = {}
   -- Render Base Image
-  for i = 1, self.width, 5 do
-    for j = 1, self.height, 5 do
+  for i = 1, self.width, self.render_resolution do
+    for j = 1, self.height, self.render_resolution do
       if self.map[i][j] < self.deep_water then
         color = self:mix(self.color.dark_blue, self.color.dark_blue, self.map[i][j], self.deep_water, 0.0)
         love.graphics.setColor(color)
@@ -100,7 +101,7 @@ function World:makeCanvas(shader)
         love.graphics.setColor(color)
       end
       -- love.graphics.point( i - 1, j - 1 )
-      love.graphics.rectangle("fill", i-1, j-1, 5, 5)
+      love.graphics.rectangle("fill", i-1, j-1, self.render_resolution, self.render_resolution)
 
     end
   end
@@ -112,7 +113,7 @@ function World:drawDebug()
   love.graphics.setColor(200, 200, 255, 255)
   for i = 1, self.width, self.occupancy_resolution do
     for j = 1, self.height, self.occupancy_resolution do
-      if self.occupancy_grid[(i + 4) / 5][(j + 4)/5] == 1 then
+      if self.occupancy_grid[(i + 4) / self.occupancy_resolution][(j + 4)/self.occupancy_resolution] == 1 then
         love.graphics.rectangle("fill", i, j, 2, 2)
       end
     end

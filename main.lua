@@ -13,9 +13,10 @@ function love.load()
   myShader = love.graphics.newShader("brighterrgb.glsl")
   flasher = love.graphics.newShader("flasher.glsl")
   -- Make World
-  occupancy_resolution = 5
+  occupancy_resolution = 15
+  render_resolution = 5
   World = require("classes.world")
-  world = World.create(screen.width, screen.height, occupancy_resolution)
+  world = World.create(screen.width, screen.height, occupancy_resolution, render_resolution)
   worldseed = world:newSeed()
   occupancy_grid = world:generate()
   world:makeCanvas(myShader)
