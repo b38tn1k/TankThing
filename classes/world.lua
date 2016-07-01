@@ -2,15 +2,10 @@
 local World = {}
 World.__index = World
 
--- TODO: clean this - make a 'render world' method and seperate it from the creation section
 
-function World.create(width, height, occupancy_resolution, render_resolution)
+function World.create(width, height, path_resolution, render_resolution)
   local w = {}
   setmetatable(w, World)
-  math.randomseed(os.time() * 1000)
-  for i = 1, 100 do   -- clear out start of random buffer
-    math.random()
-  end
   w.seed = {}
   w.map = {}
   w.amplitude = {0.6, 0.3, 0.05}
@@ -28,11 +23,10 @@ function World.create(width, height, occupancy_resolution, render_resolution)
   w.beach = 0.33
   w.low_land = 0.5
   w.mid_land = 0.7
-  w.traversable = (w.low_land + w.beach)/2
-  w.occupancy_grid = {}
-  w.occupancy_resolution = occupancy_resolution
+  w.traversable = 0.4
+  w.path_map = {}
+  w.path_resolution = path_resolution
   w.render_resolution = render_resolution
-
   return w
 end
 
@@ -44,6 +38,7 @@ function World:newSeed()
 end
 
 function World:generate()
+  self.path_map = {}
   base_layer = 0
   lump_layer = 0
   more_lumps = 0
@@ -58,18 +53,43 @@ function World:generate()
     end
   end
   -- Create the low res Occupancy Grid
-  for i = 1, self.width, self.occupancy_resolution do
-    x = (i + self.occupancy_resolution - 1) / self.occupancy_resolution
-    for j = 1, self.height, self.occupancy_resolution do
+  for i = 1, self.width, self.path_resolution do
+    x = (i + self.path_resolution - 1) / self.path_resolution
+    for j = 1, self.height, self.path_resolution do
       node = {}
       node.x = x
-      node.y = (j + self.occupancy_resolution - 1) / self.occupancy_resolution
-      if self.map[i][j] > self.traversable then
-        table.insert(self.occupancy_grid, node)
+      node.y = (j + self.path_resolution - 1) / self.path_resolution
+      -- could be improved to find average of terrain for more realistic mapping
+      terrain_value = get_average_value(self.map, i, j, self.path_resolution, self.height, self.width)
+      if terrain_value > self.traversable then
+        table.insert(self.path_map, node)
       end
     end
   end
-  return self.occupancy_grid
+  self.path_map = remove_inaccessibles(self.path_map)
+  return self.path_map
+end
+
+function remove_inaccessibles(map)
+  -- find the largest lump of land and onle return it
+  return map
+end
+
+function get_average_value(map, x, y, radius, height, width)
+  culminator = 0
+  if x < math.ceil(radius/2) or y < math.ceil(radius/2) then
+    radius = math.min (x, y)
+  end
+  if width - x < math.ceil(radius/2) or height - y < math.ceil(radius/2) then
+    radius = math.min (width - x, height - y)
+  end
+  for i = (x - math.floor(radius/2)), (x + math.floor(radius/2)) do
+    for j = (y - math.floor(radius/2)), (y + math.floor(radius/2)) do
+      culminator = culminator + map[i][j]
+    end
+  end
+  culminator = culminator / (radius * radius)
+  return culminator
 end
 
 function World:makeCanvas(shader)
@@ -111,12 +131,8 @@ end
 
 function World:drawDebug()
   love.graphics.setColor(200, 200, 255, 255)
-  for i = 1, self.width, self.occupancy_resolution do
-    for j = 1, self.height, self.occupancy_resolution do
-      if self.occupancy_grid[(i + 4) / self.occupancy_resolution][(j + 4)/self.occupancy_resolution] == 1 then
-        love.graphics.rectangle("fill", i, j, 2, 2)
-      end
-    end
+  for i, node in ipairs(self.path_map) do
+    love.graphics.rectangle("fill", node.x * self.path_resolution , node.y * self.path_resolution, 2, 2)
   end
 end
 

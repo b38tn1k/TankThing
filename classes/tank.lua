@@ -3,7 +3,7 @@ local Tank = {}
 Tank.__index = Tank
 
 -- SET UP THE TANK BOUNDARIES
-function Tank.create(x_bound, y_bound, top_speed, projectile_speed, projectile_lifespan, map, map_res, img1_pth, img2_pth, img3_pth, img4_pth)
+function Tank.create(x_bound, y_bound, top_speed, projectile_speed, projectile_lifespan, path_map, path_map_res, imgs)
   -- CONSTANTS AND VARIABLES
   local t = {}
   setmetatable( t, Tank )
@@ -33,15 +33,15 @@ function Tank.create(x_bound, y_bound, top_speed, projectile_speed, projectile_l
   t.y.path = {}
   t.path_length = 1
   t.path_index = 1
-  t.map = map
-  t.map_resolution = map_res
+  t.path_map = path_map
+  t.path_map_resolution = path_map_res
   t.top_speed = top_speed
   t.projectile.speed = projectile_speed
   t.projectile.lifespan = projectile_lifespan
-  t.sprite.layer1.img = love.graphics.newImage(img1_pth)
-  t.sprite.layer2.img = love.graphics.newImage(img2_pth)
-  t.sprite.selected.img = love.graphics.newImage(img3_pth)
-  t.projectile.img_path = img4_pth
+  t.sprite.layer1.img = love.graphics.newImage(imgs[2])
+  t.sprite.layer2.img = love.graphics.newImage(imgs[3])
+  t.sprite.selected.img = love.graphics.newImage(imgs[1])
+  t.projectile.img_path = imgs[4]
   t.x.target = 0
   t.x.speed = 0
   t.x.velocity = 0
@@ -78,12 +78,12 @@ function Tank:init(id, x, y, theta)
   self.rotation.base_target = theta
 end
 
-function Tank:debug_view()
+function Tank:drawDebug()
   position_string = "POS: ".. (string.format("%.2f", self.x.position)) .. ",\t" .. (string.format("%.2f", self.y.position))
   target_string = "TAR: ".. (string.format("%.2f", self.x.target)) .. ",\t" .. (string.format("%.2f", self.y.target))
   velocity_string = "VEL: ".. (string.format("%.2f", self.x.velocity)) .. ",\t" .. (string.format("%.2f", self.y.velocity))
   orientation_string = "ORI: ".. string.format("%.2f", self.rotation.base) .. "\tTAR: " .. string.format("%.2f", self.rotation.base_target)
-  love.graphics.setColor(200, 200, 255, 255)
+  love.graphics.setColor(255, 0, 0, 255)
   love.graphics.setFont(love.graphics.newFont(15))
   love.graphics.printf(position_string,10, self.y.bound - 64, 500, 'left')
   love.graphics.printf(target_string, 10, self.y.bound - 48, 500, 'left')
@@ -285,17 +285,23 @@ function Tank:approachTarget(dt)
   end
 end
 
+function Tank:draw_path()
+  love.graphics.setColor(255, 0, 0, 255)
+  for i, x in ipairs(self.x.path) do
+    if i < #self.x.path then
+      y = self.y.path[i]
+      love.graphics.line(x, y, self.x.path[i + 1], self.y.path[i + 1])
+    end
+  end
+  love.graphics.reset()
+end
+
 -- add another node to the tanks path
 function Tank:addWaypoint(x, y)
-
-  local scaled_x_start = math.floor(self.x.path[self.path_length]/self.map_resolution)
-  local scaled_y_start = math.floor(self.y.path[self.path_length]/self.map_resolution)
-  local start = find_node(scaled_x_start, scaled_y_start, self.map)
-
-  local scaled_x_goal = math.floor(x/self.map_resolution)
-  local scaled_y_goal = math.floor(y/self.map_resolution)
-  local goal = find_node(scaled_x_goal, scaled_y_goal, self.map)
-
+  -- find the closest node to the end
+  local scaled_x_goal = math.floor(x/self.path_map_resolution)
+  local scaled_y_goal = math.floor(y/self.path_map_resolution)
+  local goal = find_node(scaled_x_goal, scaled_y_goal, self.path_map)
   if goal then
     if self.autonomous ~= true then
       self.autonomous = true
@@ -305,11 +311,18 @@ function Tank:addWaypoint(x, y)
       self.y.path = {self.y.position}
     end
     if x ~= nil and y ~= nil then
-      more_path = Astar(start, goal, self.map)
-      for i, node in ipairs(more_path) do
-        table.insert(self.x.path, node.x * self.map_resolution)
-        table.insert(self.y.path, node.y * self.map_resolution)
-        self.path_length = self.path_length + 1
+      -- determine the starting node for a*
+      local scaled_x_start = math.floor(self.x.path[self.path_length]/self.path_map_resolution)
+      local scaled_y_start = math.floor(self.y.path[self.path_length]/self.path_map_resolution)
+      local start = find_node(scaled_x_start, scaled_y_start, self.path_map)
+      raw_path = Astar(start, goal, self.path_map)
+      cleaned_path = clean_path(raw_path)
+      for i, node in ipairs(cleaned_path) do
+        if i > 2 then
+          table.insert(self.x.path, node.x * self.path_map_resolution)
+          table.insert(self.y.path, node.y * self.path_map_resolution)
+          self.path_length = self.path_length + 1
+        end
       end
       table.insert(self.x.path, x)
       table.insert(self.y.path, y)
@@ -318,9 +331,19 @@ function Tank:addWaypoint(x, y)
   end
 end
 
-function find_node(x, y, map)
+function clean_path(path)
+  cleaned = {}
+  for i, node in ipairs(path) do
+    for j = i + 2, #path do
+      -- something smart
+    end
+  end
+  return path
+end
+
+function find_node(x, y, path_map)
   local node = nil
-  for i, a_node in ipairs(map) do
+  for i, a_node in ipairs(path_map) do
     if a_node.x == x and a_node.y == y then
       node = a_node
     end
@@ -328,12 +351,12 @@ function find_node(x, y, map)
   return node
 end
 
--- Find Neighbouring nodes in the map
-function find_neighbours(node, map)
+-- Find Neighbouring nodes in the path_map
+function find_neighbours(node, path_map)
   local neighbours = {}
   y = node.y
   x = node.x
-  for _, a_node in ipairs(map) do
+  for _, a_node in ipairs(path_map) do
     if (a_node.x == x or a_node.x == x - 1 or a_node.x == x + 1) and (a_node.y == y or a_node.y == y + 1 or a_node.y == y - 1) and not (a_node.x == x and a_node.y == y) then
       table.insert(neighbours, a_node)
     end
@@ -346,8 +369,8 @@ function heuristic_distance(a, b)
   return ((b.x - a.x) * (b.x - a.x)) + ((b.y - a.y) * (b.y - a.y))
 end
 
--- A* algorithim accepts start node and goal node arguements as {x_scaled, y_scaled} and map as a map
-function Astar(start, goal, map)
+-- A* algorithim accepts start node and goal node arguements as {x_scaled, y_scaled} and path_map as a path_map
+function Astar(start, goal, path_map)
   local open = {}
   local closed = {}
   start.g = 0
@@ -366,7 +389,7 @@ function Astar(start, goal, map)
     end
     table.remove(open, to_remove)
     -- find the neighbours of q and set them up
-    for j, neighbour in ipairs(find_neighbours(q, map)) do
+    for j, neighbour in ipairs(find_neighbours(q, path_map)) do
       if neighbour.x == goal.x and neighbour.y == goal.y then
         open = {}
         break
@@ -394,6 +417,18 @@ function Astar(start, goal, map)
     table.insert(closed, q)
   end
   return closed
+end
+
+function Tank:reset(path_map)
+  self.x.path = {self.x.position}
+  self.y.path = {self.y.position}
+  self.x.target = self.x.position
+  self.y.target = self.y.position
+  self.path_index = 1
+  self.path_length = 1
+  self.path_map = path_map
+  self.x.velocity = 0
+  self.y.velocity = 0
 end
 
 -- APPLY MOVEMENT and stuff
