@@ -8,8 +8,8 @@ function World.create(width, height, path_resolution, render_resolution)
   setmetatable(w, World)
   w.seed = {}
   w.map = {}
-  w.amplitude = {0.6, 0.3, 0.05}
-  w.scale = {0.001, 0.006, 0.04}
+  w.amplitude = {0.6, 0.3, 0.04}
+  w.scale = {0.001, 0.006, 0.03}
   w.width, w.height = width, height
   w.color = {}
   w.color.dark_blue = {90, 203, 243, 255} --rgb(90, 203, 243)
@@ -72,6 +72,12 @@ end
 
 function remove_inaccessibles(map)
   -- find the largest lump of land and onle return it
+  -- find all neighbours of a node
+  -- if they are not in a stack but their parent is in a stack, add them to a stack
+  -- if they are not in a stack and their parents is not in a stack, start a new stack
+  -- if they are in a stack, don't add them again
+  -- find and return the largest stack
+
   return map
 end
 

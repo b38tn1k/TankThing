@@ -316,7 +316,7 @@ function Tank:addWaypoint(x, y)
       local scaled_y_start = math.floor(self.y.path[self.path_length]/self.path_map_resolution)
       local start = find_node(scaled_x_start, scaled_y_start, self.path_map)
       raw_path = Astar(start, goal, self.path_map)
-      cleaned_path = clean_path(raw_path)
+      cleaned_path = clean_path(raw_path, self.path_map)
       for i, node in ipairs(cleaned_path) do
         if i > 2 then
           table.insert(self.x.path, node.x * self.path_map_resolution)
@@ -331,14 +331,51 @@ function Tank:addWaypoint(x, y)
   end
 end
 
-function clean_path(path)
-  cleaned = {}
+function clean_path(path, map)
+  -- takes the path throguh the map
+  local cleaned = {}
+  local neighbours = {}
+  local overlaps = {}
+  length = #path
+  local latch = 0
+  -- go through every node in the path
   for i, node in ipairs(path) do
-    for j = i + 2, #path do
-      -- something smart
+    neighbours = find_neighbours(node, map)
+    for j = (length), i + 2, -1 do
+      -- go from last node in the path back to the current node
+      -- find overlaping/looping sections, but only the biggest ones
+      if i > latch and node_in_set(path[j], neighbours) then
+        table.insert(overlaps, {i, j})
+        latch = j
+      end
     end
   end
-  return path
+  for i, node in ipairs(path) do
+    if not_in_ranges(i, overlaps) then
+      table.insert(cleaned, node)
+    end
+  end
+  return cleaned
+end
+
+function not_in_ranges(i, ranges)
+  result = true
+  for _, range in ipairs(ranges) do
+    if i > range[1] and i < range[2] then
+      result = false
+    end
+  end
+  return result
+end
+
+function node_in_set(node, set)
+  result = false
+  for _, a_node in ipairs(set) do
+    if node.x == a_node.x and node.y == a_node.y then
+      result = true
+    end
+  end
+  return result
 end
 
 function find_node(x, y, path_map)
@@ -354,8 +391,8 @@ end
 -- Find Neighbouring nodes in the path_map
 function find_neighbours(node, path_map)
   local neighbours = {}
-  y = node.y
-  x = node.x
+  local y = node.y
+  local x = node.x
   for _, a_node in ipairs(path_map) do
     if (a_node.x == x or a_node.x == x - 1 or a_node.x == x + 1) and (a_node.y == y or a_node.y == y + 1 or a_node.y == y - 1) and not (a_node.x == x and a_node.y == y) then
       table.insert(neighbours, a_node)
