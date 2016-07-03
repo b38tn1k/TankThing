@@ -66,19 +66,76 @@ function World:generate()
       end
     end
   end
-  self.path_map = remove_inaccessibles(self.path_map)
+  self.path_map = combine_maps(remove_inaccessibles(self.path_map), remove_inaccessibles(reverse_map(self.path_map)))
   return self.path_map
 end
 
-function remove_inaccessibles(map)
-  -- find the largest lump of land and onle return it
-  -- find all neighbours of a node
-  -- if they are not in a stack but their parent is in a stack, add them to a stack
-  -- if they are not in a stack and their parents is not in a stack, start a new stack
-  -- if they are in a stack, don't add them again
-  -- find and return the largest stack
+function combine_maps(mapa, mapb)
+  local new_map = mapa
+  for _, node in ipairs(mapb) do
+    if not node_in_set(node, new_map) then
+      table.insert(new_map, node)
+    end
+  end
+  return new_map
+end
 
-  return map
+function reverse_map(map)
+  local reversed = {}
+  for i  = #map, 1, -1 do
+    table.insert(reversed, map[i])
+  end
+  return reversed
+end
+
+-- this doesnt work properly yet but is fixed by running it on reversed map
+function remove_inaccessibles(map)
+  local lumps = {{map[1]}}
+  for i, node in ipairs(map) do
+    local in_lump = false
+    local the_lump = 1
+    for j, lump in ipairs(lumps) do
+      if node_in_set(node, lump) then
+        in_lump = true
+        the_lump = j
+        break
+      else
+        in_lump = false
+      end
+    end
+    neighbours_of_node = find_neighbours(node, map)
+    if in_lump == true then
+      for _, neighbour in ipairs(neighbours_of_node) do
+        if not node_in_set(neighbour, lumps[the_lump]) then
+          table.insert(lumps[the_lump], neighbour)
+        end
+      end
+    else
+      local new_lump = {}
+      for _, neighbour in ipairs(neighbours_of_node) do
+        table.insert(new_lump, neighbour)
+      end
+      table.insert(lumps, new_lump)
+    end
+  end
+  local cleaned_map = {}
+  for i, lump in ipairs(lumps) do
+    if #lump > #cleaned_map then
+      cleaned_map = lump
+    end
+  end
+  return cleaned_map
+end
+
+function combine_sets(seta, setb)
+  local new_set = {}
+  for _, i in ipairs(seta) do
+    table.insert(new_set, i)
+  end
+  for _, i in ipairs(setb) do
+    table.insert(new_set, i)
+  end
+  return new_set
 end
 
 function get_average_value(map, x, y, radius, height, width)
@@ -136,7 +193,7 @@ function World:makeCanvas(shader)
 end
 
 function World:drawDebug()
-  love.graphics.setColor(200, 200, 255, 255)
+  love.graphics.setColor(200, 0, 255, 255)
   for i, node in ipairs(self.path_map) do
     love.graphics.rectangle("fill", node.x * self.path_resolution , node.y * self.path_resolution, 2, 2)
   end

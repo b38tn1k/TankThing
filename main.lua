@@ -1,11 +1,12 @@
 require "events"
+require "path_finding"
 function love.load()
   math.randomseed(os.time() * 1000)
   for i = 1, 100 do   -- clear out start of random buffer
     math.random()
   end
   -- Setup Screen/Window
-  title = {'UnUntitled', 'I had something for this...', 'I LÖVE Lua', '༼ つ ◕_◕ ༽つ I 💗 Tank', }
+  title = {'UnUntitled', 'I had something for this...', 'I LÖVE Lua', '༼ つ ◕_◕ ༽つ 💗 Tank', }
   love.window.setTitle(title[math.random(#title)])
   screen = {}
   -- screen.width, screen.height = love.window.getDesktopDimensions(1)
@@ -58,7 +59,7 @@ function love.update(dt)
     end
     for i, projectile in ipairs(projectiles) do
       -- Remove Projectiles that leave screen or are too old
-      if projectile:removable() then 
+      if projectile:removable() then
         table.remove(projectiles, i)
       else
         projectile:update(dt)

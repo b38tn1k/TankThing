@@ -1,6 +1,7 @@
 function love.mousepressed(x, y, button, istouch)
   if pause == true then
     if menu:new_game_button(x, y) == true then
+      love.graphics.clear( )
       screen.width, screen.height = love.window.getDesktopDimensions(1)
       worldseed = world:newSeed()
       path_map = world:generate()
@@ -69,6 +70,7 @@ function love.keyreleased(key)
 end
 
 function love.resize(w, h)
+  love.graphics.clear()
   screen.width, screen.height = w, h
   world = World.create(screen.width, screen.height, path_resolution, render_resolution)
   world.seed = worldseed
