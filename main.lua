@@ -1,74 +1,71 @@
-require "events"
-require "path_finding"
+require "classes.events"
+require "classes.path_finding"
 function love.load()
   math.randomseed(os.time() * 1000)
-  for i = 1, 100 do   -- clear out start of random buffer
+  -- CLEAR OUT RANDOM BUFFER
+  for i = 1, 100 do
     math.random()
   end
-  -- Setup Screen/Window
+  -- WINDOW SETUP
   title = {'UnUntitled', 'I had something for this...', 'I LÖVE Lua', '༼ つ ◕_◕ ༽つ 💗 Tank', }
   love.window.setTitle(title[math.random(#title)])
   screen = {}
   -- screen.width, screen.height = love.window.getDesktopDimensions(1)
   screen.width, screen.height = 500, 500
   love.window.setMode(screen.width, screen.height, {resizable=true, minwidth=500, minheight=500})
-  -- Setup Variables, Assets
-  time = 0
-  pause = true
-  debug = false
-  local images = require('image_paths')
-  tank_image_paths = images[1]
-  small_tank_image_paths = images[2]
-  -- Make Shader(s)
-  myShader = love.graphics.newShader("brighterrgb.glsl")
-  flasher = love.graphics.newShader("flasher.glsl")
-  -- Make Menu
+  -- GAME CONTROLER ALSO CONTAINS VARIABLES, ASSETS AND CONSTANTS
+  game = require("classes.game")
+  game.assets = require('classes.load_assets')
+  -- SHADERS
+  flasher = love.graphics.newShader("shaders/flasher.shader")
+  -- IMPORT CLASSES
+  -- MENU CLASS
   Menu = require("classes.menu")
-  menu = Menu.create(screen.width, screen.height, tank_image_paths, "logo.png")
-  -- Make World
-  path_resolution = 10
+  game.menu = Menu.create(screen.width, screen.height, game.assets)
+  -- WORLD CLASS
   render_resolution = 5
   World = require("classes.world")
-  world = World.create(screen.width, screen.height, path_resolution, render_resolution)
-  worldseed = world:newSeed()
-  path_map = world:generate()
-  world:makeCanvas(myShader)
-  -- Make Projectiles
-  projectiles = {}
+  -- CREATE A MAP FOR START SCREEN BACKGROUND
+  game.world = World.create(screen.width, screen.height, game.path_resolution, render_resolution)
+  game.worldseed = game.world:newSeed()
+  game.path_map = game.world:generate()
+  game.world:makeCanvas(1)
+  -- PROJECTILES CLASS
+  game.projectiles = {}
   Projectile = require("classes.projectile")
-  -- Make Tanks
-  tanks = {}
-  hidden_tanks = {}
+  -- TANKS CLASS
+  game.tanks = {}
+  game.hidden_tanks = {}
   Tank = require("classes.tank")
+  -- SET SOME TANK VARIABLES
   top_speed = 30
   projectile_speed = 200
-  projectile_lifespan = 1
+  projectile_lifespan = 1 -- SECONDS
 end
 
 function love.update(dt)
-  if pause == true then -- DRAW MENU
+  -- PAUSE MENU
+  if game.pause == true then
     time = 0
   else
-    time = time + dt
-    flasher:send("time", time)
-    for j, tank in ipairs(tanks) do
-      tank:userControl()
-      tank:rotate_turrent()
-      tank:approachTarget(dt)
+    game.time = game.time + dt
+    flasher:send("time", game.time)
+    -- UPDATE TANKS
+    for j, tank in ipairs(game.tanks) do
       tank:update(dt, 1)
     end
-    for i, projectile in ipairs(projectiles) do
-      -- Remove Projectiles that leave screen or are too old
+    -- UPDATE PROJECTILES
+    for i, projectile in ipairs(game.projectiles) do
       if projectile:removable() then
-        table.remove(projectiles, i)
+        table.remove(game.projectiles, i)
       else
         projectile:update(dt)
       end
-      -- Check for Collisions between armed projectiles and tanks/entities
-      for j, tank in ipairs(tanks) do
+      -- CHECK FOR TANK/PROJECTILE COLLISIONS
+      for j, tank in ipairs(game.tanks) do
         if tank:check_for_collision(projectile.x.position, projectile.y.position) == true and tank.id ~= projectile.parent_id then
-          table.remove(projectiles, i)
-          table.remove(tanks, j)
+          table.remove(game.projectiles, i)
+          table.remove(game.tanks, j)
         end
       end
     end
@@ -76,30 +73,34 @@ function love.update(dt)
 end
 
 function love.draw()
-  world:draw()
-  if debug == true then
-    world:drawDebug()
-    for _, tank in ipairs(tanks) do
+  game.world:draw()
+  -- DEBUG OPTIONS
+  if game.debug == true then
+    game.world:drawDebug()
+    for _, tank in ipairs(game.tanks) do
       tank:draw_path()
       if tank.selected then
         tank:drawDebug()
       end
     end
   end
-
-  if pause == true then -- DRAW MENU
-    menu:draw()
-  else -- DRAW GAME
-    for j, tank in ipairs(tanks) do
+  -- PAUSE GAME MENU
+  if game.pause == true then
+    game.menu:draw()
+  else
+    -- DRAW TANK BASE LAYERS
+    for j, tank in ipairs(game.tanks) do
       if tank.selected then
         tank:drawHalo(flasher)
       end
       tank:drawLayer1()
     end
-    for i, projectile in ipairs(projectiles) do
+    -- DRAW PROJECTILES
+    for i, projectile in ipairs(game.projectiles) do
       projectile:draw()
     end
-    for j, tank in ipairs(tanks) do
+    -- DRAW TANK TURRENTS
+    for j, tank in ipairs(game.tanks) do
       tank:drawLayer2()
     end
   end

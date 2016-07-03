@@ -11,13 +11,15 @@ function World.create(width, height, path_resolution, render_resolution)
   w.amplitude = {0.6, 0.3, 0.04}
   w.scale = {0.001, 0.006, 0.03}
   w.width, w.height = width, height
-  w.color = {}
-  w.color.dark_blue = {90, 203, 243, 255} --rgb(90, 203, 243)
-  w.color.light_blue = {152, 218, 246, 255} --rgb(152, 218, 246)
-  w.color.sand_yellow = {214, 205, 170, 255} --rgb(214, 205, 170)
-  w.color.light_green = {153, 172, 128, 255} --rgb(153, 172, 128)
-  w.color.green = {137, 166, 107, 255} --rgb(137, 166, 107)
-  w.color.dark_green = {88, 132, 112, 255} --rgb(88, 132, 112)
+  w.biomes = {}
+  plains = {}
+  plains.deep_water = {90, 203, 243, 255} --rgb(90, 203, 243)
+  plains.shallow_water = {152, 218, 246, 255} --rgb(152, 218, 246)
+  plains.beach = {214, 205, 170, 255} --rgb(214, 205, 170)
+  plains.low_land = {153, 172, 128, 255} --rgb(153, 172, 128)
+  plains.mid_land = {137, 166, 107, 255} --rgb(137, 166, 107)
+  plains.hills = {88, 132, 112, 255} --rgb(88, 132, 112)
+  table.insert(w.biomes, plains)
   w.deep_water = 0.15
   w.shallow_water = 0.28
   w.beach = 0.33
@@ -89,6 +91,7 @@ function reverse_map(map)
 end
 
 -- this doesnt work properly yet but is fixed by running it on reversed map
+-- to be replaced with flood fill I think
 function remove_inaccessibles(map)
   local lumps = {{map[1]}}
   for i, node in ipairs(map) do
@@ -155,8 +158,7 @@ function get_average_value(map, x, y, radius, height, width)
   return culminator
 end
 
-function World:makeCanvas(shader)
-  love.graphics.setShader(shader)
+function World:makeCanvas(biome)
   -- Draw the Height Map to a canvas
   self.canvas = love.graphics.newCanvas(self.width, self.height)
   love.graphics.setCanvas(self.canvas)
@@ -165,22 +167,22 @@ function World:makeCanvas(shader)
   for i = 1, self.width, self.render_resolution do
     for j = 1, self.height, self.render_resolution do
       if self.map[i][j] < self.deep_water then
-        color = self:mix(self.color.dark_blue, self.color.dark_blue, self.map[i][j], self.deep_water, 0.0)
+        color = self:mix(self.biomes[biome].deep_water, self.biomes[biome].deep_water, self.map[i][j], self.deep_water, 0.0)
         love.graphics.setColor(color)
       elseif self.map[i][j] < self.shallow_water then
-        color = self:mix(self.color.dark_blue, self.color.light_blue, self.map[i][j], self.shallow_water, self.deep_water)
+        color = self:mix(self.biomes[biome].deep_water, self.biomes[biome].shallow_water, self.map[i][j], self.shallow_water, self.deep_water)
         love.graphics.setColor(color)
       elseif self.map[i][j] < self.beach then
-        color = self:mix(self.color.light_blue, self.color.sand_yellow, self.map[i][j], self.beach, self.shallow_water)
+        color = self:mix(self.biomes[biome].shallow_water, self.biomes[biome].beach, self.map[i][j], self.beach, self.shallow_water)
         love.graphics.setColor(color)
       elseif self.map[i][j] < self.low_land then
-        color = self:mix(self.color.sand_yellow, self.color.light_green, self.map[i][j], self.low_land, self.beach)
+        color = self:mix(self.biomes[biome].beach, self.biomes[biome].low_land, self.map[i][j], self.low_land, self.beach)
         love.graphics.setColor(color)
       elseif self.map[i][j] < self.mid_land then
-        color = self:mix(self.color.light_green, self.color.green, self.map[i][j], self.mid_land, self.low_land)
+        color = self:mix(self.biomes[biome].low_land, self.biomes[biome].mid_land, self.map[i][j], self.mid_land, self.low_land)
         love.graphics.setColor(color)
       else
-        color = self:mix(self.color.green, self.color.dark_green, self.map[i][j], 1.0, self.mid_land)
+        color = self:mix(self.biomes[biome].mid_land, self.biomes[biome].hills, self.map[i][j], 1.0, self.mid_land)
         love.graphics.setColor(color)
       end
       -- love.graphics.point( i - 1, j - 1 )
@@ -189,7 +191,6 @@ function World:makeCanvas(shader)
     end
   end
   love.graphics.setCanvas()
-  love.graphics.setShader()
 end
 
 function World:drawDebug()

@@ -1,7 +1,6 @@
 Projectile = {}
 Projectile.__index = Projectile
 
-
 -- INIT PROJECTILE/MISSILE CLASS
 function Projectile.create( data )
   local p = {}

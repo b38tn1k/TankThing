@@ -357,6 +357,9 @@ end
 
 -- APPLY MOVEMENT and stuff
 function Tank:update(dt, speed_modifier)
+  self:userControl()
+  self:rotate_turrent()
+  self:approachTarget(dt)
   -- MOVE
   if math.abs(self.rotation.base - self.rotation.base_target) < self.acceptable_rad_error then
     self.x.position = self.x.position + self.x.velocity * dt * speed_modifier
