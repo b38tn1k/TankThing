@@ -39,7 +39,7 @@ function Projectile:update(dt)
   self.y.position = self.y.position + self.y.velocity * dt
 end
 
-function Projectile:removable()
+function Projectile:removable(screen)
   return self.x.position > screen.width or self.x.position < 0 or self.y.position > screen.height or self.y.position < 0 or self.age > self.life_span
 end
 

@@ -6,27 +6,26 @@ function love.load()
   for i = 1, 100 do
     math.random()
   end
-  -- WINDOW SETUP
-  title = {'UnUntitled', 'I had something for this...', 'I LÖVE Lua', '༼ つ ◕_◕ ༽つ 💗 Tank', }
-  love.window.setTitle(title[math.random(#title)])
-  screen = {}
-  -- screen.width, screen.height = love.window.getDesktopDimensions(1)
-  screen.width, screen.height = 500, 500
-  love.window.setMode(screen.width, screen.height, {resizable=true, minwidth=500, minheight=500})
   -- GAME CONTROLER ALSO CONTAINS VARIABLES, ASSETS AND CONSTANTS
   game = require("classes.game")
   game.assets = require('classes.load_assets')
+  -- WINDOW SETUP
+  title = {'UnUntitled', 'I had something for this...', 'I LÖVE Lua', '༼ つ ◕_◕ ༽つ 💗 Tank', }
+  love.window.setTitle(title[math.random(#title)])
+  -- game.screen.width, game.screen.height = love.window.getDesktopDimensions(1)
+  game.screen.width, game.screen.height = 500, 500
+  love.window.setMode(game.screen.width, game.screen.height, {resizable=true, minwidth=500, minheight=500})
   -- SHADERS
   flasher = love.graphics.newShader("shaders/flasher.shader")
   -- IMPORT CLASSES
   -- MENU CLASS
   Menu = require("classes.menu")
-  game.menu = Menu.create(screen.width, screen.height, game.assets)
+  game.menu = Menu.create(game.screen.width, game.screen.height, game.assets)
   -- WORLD CLASS
   render_resolution = 5
   World = require("classes.world")
   -- CREATE A MAP FOR START SCREEN BACKGROUND
-  game.world = World.create(screen.width, screen.height, game.path_resolution, render_resolution)
+  game.world = World.create(game.screen.width, game.screen.height, game.path_resolution, render_resolution)
   game.worldseed = game.world:newSeed()
   game.path_map = game.world:generate()
   game.world:makeCanvas(1)
@@ -49,26 +48,12 @@ function love.update(dt)
     time = 0
   else
     game.time = game.time + dt
+    -- UPDATE SHADERS
     flasher:send("time", game.time)
     -- UPDATE TANKS
-    for j, tank in ipairs(game.tanks) do
-      tank:update(dt, 1)
-    end
+    game.update_tanks(dt)
     -- UPDATE PROJECTILES
-    for i, projectile in ipairs(game.projectiles) do
-      if projectile:removable() then
-        table.remove(game.projectiles, i)
-      else
-        projectile:update(dt)
-      end
-      -- CHECK FOR TANK/PROJECTILE COLLISIONS
-      for j, tank in ipairs(game.tanks) do
-        if tank:check_for_collision(projectile.x.position, projectile.y.position) == true and tank.id ~= projectile.parent_id then
-          table.remove(game.projectiles, i)
-          table.remove(game.tanks, j)
-        end
-      end
-    end
+    game.update_projectiles(dt)
   end
 end
 

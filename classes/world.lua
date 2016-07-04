@@ -13,13 +13,21 @@ function World.create(width, height, path_resolution, render_resolution)
   w.width, w.height = width, height
   w.biomes = {}
   plains = {}
-  plains.deep_water = {90, 203, 243, 255} --rgb(90, 203, 243)
-  plains.shallow_water = {152, 218, 246, 255} --rgb(152, 218, 246)
-  plains.beach = {214, 205, 170, 255} --rgb(214, 205, 170)
-  plains.low_land = {153, 172, 128, 255} --rgb(153, 172, 128)
-  plains.mid_land = {137, 166, 107, 255} --rgb(137, 166, 107)
-  plains.hills = {88, 132, 112, 255} --rgb(88, 132, 112)
+  plains.deep_water = {90, 203, 243, 255}
+  plains.shallow_water = {152, 218, 246, 255}
+  plains.beach = {214, 205, 170, 255}
+  plains.low_land = {153, 172, 128, 255}
+  plains.mid_land = {137, 166, 107, 255}
+  plains.hills = {88, 132, 112, 255}
   table.insert(w.biomes, plains)
+  desert = {}
+  desert.deep_water = {90, 203, 243, 255}
+  desert.shallow_water = {152, 218, 246, 255}
+  desert.beach = {119, 136, 152, 255}
+  desert.low_land = {255, 221, 85, 255}
+  desert.mid_land = {255, 119, 35, 255}
+  desert.hills = {204, 85, 51, 255}
+  table.insert(w.biomes, desert)
   w.deep_water = 0.15
   w.shallow_water = 0.28
   w.beach = 0.33
@@ -167,27 +175,57 @@ function World:makeCanvas(biome)
   for i = 1, self.width, self.render_resolution do
     for j = 1, self.height, self.render_resolution do
       if self.map[i][j] < self.deep_water then
-        color = self:mix(self.biomes[biome].deep_water, self.biomes[biome].deep_water, self.map[i][j], self.deep_water, 0.0)
+        color = mix_colors(self.biomes[biome].deep_water, self.biomes[biome].deep_water, self.map[i][j], self.deep_water, 0.0)
         love.graphics.setColor(color)
       elseif self.map[i][j] < self.shallow_water then
-        color = self:mix(self.biomes[biome].deep_water, self.biomes[biome].shallow_water, self.map[i][j], self.shallow_water, self.deep_water)
+        color = mix_colors(self.biomes[biome].deep_water, self.biomes[biome].shallow_water, self.map[i][j], self.shallow_water, self.deep_water)
         love.graphics.setColor(color)
       elseif self.map[i][j] < self.beach then
-        color = self:mix(self.biomes[biome].shallow_water, self.biomes[biome].beach, self.map[i][j], self.beach, self.shallow_water)
+        color = mix_colors(self.biomes[biome].shallow_water, self.biomes[biome].beach, self.map[i][j], self.beach, self.shallow_water)
         love.graphics.setColor(color)
       elseif self.map[i][j] < self.low_land then
-        color = self:mix(self.biomes[biome].beach, self.biomes[biome].low_land, self.map[i][j], self.low_land, self.beach)
+        color = mix_colors(self.biomes[biome].beach, self.biomes[biome].low_land, self.map[i][j], self.low_land, self.beach)
         love.graphics.setColor(color)
       elseif self.map[i][j] < self.mid_land then
-        color = self:mix(self.biomes[biome].low_land, self.biomes[biome].mid_land, self.map[i][j], self.mid_land, self.low_land)
+        color = mix_colors(self.biomes[biome].low_land, self.biomes[biome].mid_land, self.map[i][j], self.mid_land, self.low_land)
         love.graphics.setColor(color)
       else
-        color = self:mix(self.biomes[biome].mid_land, self.biomes[biome].hills, self.map[i][j], 1.0, self.mid_land)
+        color = mix_colors(self.biomes[biome].mid_land, self.biomes[biome].hills, self.map[i][j], 1.0, self.mid_land)
         love.graphics.setColor(color)
       end
       -- love.graphics.point( i - 1, j - 1 )
       love.graphics.rectangle("fill", i-1, j-1, self.render_resolution, self.render_resolution)
+    end
+  end
+  love.graphics.setCanvas()
+end
 
+function World:imageCanvas(tiles)
+  local images = {}
+  for _, path in pairs(tiles) do
+    new_image = love.graphics.newImage(path)
+    table.insert(images, new_image)
+  end
+  -- Draw the Height Map to a canvas
+  self.canvas = love.graphics.newCanvas(self.width, self.height)
+  love.graphics.setCanvas(self.canvas)
+  for i = 1, self.width, self.render_resolution do
+    for j = 1, self.height, self.render_resolution do
+      if self.map[i][j] < self.deep_water then
+        love.graphics.draw(images[1], i, j, 0, 0.2, 0.2)
+      elseif self.map[i][j] < self.shallow_water then
+        love.graphics.draw(images[2], i, j, 0, 0.2, 0.2)
+      elseif self.map[i][j] < self.beach then
+        love.graphics.draw(images[3], i, j, 0, 0.2, 0.2)
+      elseif self.map[i][j] < self.low_land then
+        love.graphics.draw(images[4], i, j, 0, 0.2, 0.2)
+      elseif self.map[i][j] < self.mid_land then
+        love.graphics.draw(images[5], i, j, 0, 0.2, 0.2)
+      else
+        love.graphics.draw(images[6], i, j, 0, 0.2, 0.2)
+      end
+      -- love.graphics.point( i - 1, j - 1 )
+      -- love.graphics.rectangle("fill", i-1, j-1, self.render_resolution, self.render_resolution)
     end
   end
   love.graphics.setCanvas()
@@ -200,15 +238,16 @@ function World:drawDebug()
   end
 end
 
-function World:mix(color1, color2, val, max, min)
+
+function mix_colors(color1, color2, val, max, min)
   new_color = {0, 0, 0, 255}
   denominator = max - min
   numerator = val - min
-  mix_ratio = numerator / denominator
-  complement = 1 - mix_ratio
-  new_color[1] = (color2[1]* mix_ratio + color1[1] * complement)
-  new_color[2] = (color2[2]* mix_ratio + color1[2] * complement)
-  new_color[3] = (color2[3]* mix_ratio + color1[3] * complement)
+  mix_colors_ratio = numerator / denominator
+  complement = 1 - mix_colors_ratio
+  new_color[1] = (color2[1]* mix_colors_ratio + color1[1] * complement)
+  new_color[2] = (color2[2]* mix_colors_ratio + color1[2] * complement)
+  new_color[3] = (color2[3]* mix_colors_ratio + color1[3] * complement)
   return new_color
 end
 
