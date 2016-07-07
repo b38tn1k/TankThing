@@ -68,6 +68,31 @@ function find_neighbours(node, path_map)
   return neighbours
 end
 
+function find_more_neighbours(node, map, size, distance)
+  local neighbours = find_almost_neighbours(node, map, distance)
+  while size ~= 0 do
+    local nb = {}
+    for _, neighbour in ipairs(neighbours) do
+      nb = find_almost_neighbours(neighbour, map, distance)
+      neighbours = combine_maps(nb, neighbours)
+    end
+    size = size - 1
+  end
+  return neighbours
+end
+
+function find_almost_neighbours(node, map, distance)
+  local neighbours = {}
+  local y = node.y
+  local x = node.x
+  for _, a_node in ipairs(map) do
+    if (a_node.x == x or a_node.x == x - distance or a_node.x == x + distance) and (a_node.y == y or a_node.y == y + distance or a_node.y == y - distance) and not (a_node.x == x and a_node.y == y) then
+      table.insert(neighbours, a_node)
+    end
+  end
+  return neighbours
+end
+
 -- Find lazy non euclid distance
 function heuristic_distance(a, b)
   return ((b.x - a.x) * (b.x - a.x)) + ((b.y - a.y) * (b.y - a.y))

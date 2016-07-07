@@ -25,6 +25,7 @@ function Tank.create(x_bound, y_bound, top_speed, projectile_speed, projectile_l
   t.sprite.selected = {}
   t.hitbox = {}
   t.id = 0
+  t.team = 0
   t.x.position = 0
   t.y.position = 0
   t.x.bound = x_bound
@@ -39,9 +40,10 @@ function Tank.create(x_bound, y_bound, top_speed, projectile_speed, projectile_l
   t.top_speed = top_speed
   t.projectile.speed = projectile_speed
   t.projectile.lifespan = projectile_lifespan
-  t.sprite.layer1.img = love.graphics.newImage(imgs[2])
-  t.sprite.layer2.img = love.graphics.newImage(imgs[3])
-  t.sprite.selected.img = love.graphics.newImage(imgs[1])
+  t.projectile.range = projectile_speed * projectile_lifespan
+  t.sprite.layer1.img = lg.newImage(imgs[2])
+  t.sprite.layer2.img = lg.newImage(imgs[3])
+  t.sprite.selected.img = lg.newImage(imgs[1])
   t.projectile.img_path = imgs[4]
   t.x.target = 0
   t.x.speed = 0
@@ -69,10 +71,11 @@ function Tank.create(x_bound, y_bound, top_speed, projectile_speed, projectile_l
   return t
 end
 
-function Tank:init(id, x, y, theta)
+function Tank:init(id, team, node, theta)
   self.id = id
-  self.x.position = x
-  self.y.position = y
+  self.team = team
+  self.x.position = node.x * self.path_map_resolution
+  self.y.position = node.y * self.path_map_resolution
   table.insert(self.x.path, self.x.position)
   table.insert(self.y.path, self.y.position)
   self.rotation.base = theta
@@ -80,42 +83,41 @@ function Tank:init(id, x, y, theta)
 end
 
 function Tank:drawDebug()
-  position_string = "POS: ".. (string.format("%.2f", self.x.position)) .. ",\t" .. (string.format("%.2f", self.y.position))
-  target_string = "TAR: ".. (string.format("%.2f", self.x.target)) .. ",\t" .. (string.format("%.2f", self.y.target))
-  velocity_string = "VEL: ".. (string.format("%.2f", self.x.velocity)) .. ",\t" .. (string.format("%.2f", self.y.velocity))
-  orientation_string = "ORI: ".. string.format("%.2f", self.rotation.base) .. "\tTAR: " .. string.format("%.2f", self.rotation.base_target)
-  love.graphics.setColor(255, 0, 0, 255)
-  love.graphics.setFont(love.graphics.newFont(15))
-  love.graphics.printf(position_string,10, self.y.bound - 64, 500, 'left')
-  love.graphics.printf(target_string, 10, self.y.bound - 48, 500, 'left')
-  love.graphics.printf(velocity_string, 10, self.y.bound - 32, 500, 'left')
-  love.graphics.printf(orientation_string, 10, self.y.bound - 16, 500, 'left')
+  local position_string = "POS: ".. (string.format("%.2f", self.x.position)) .. ",\t" .. (string.format("%.2f", self.y.position))
+  local target_string = "TAR: ".. (string.format("%.2f", self.x.target)) .. ",\t" .. (string.format("%.2f", self.y.target))
+  local velocity_string = "VEL: ".. (string.format("%.2f", self.x.velocity)) .. ",\t" .. (string.format("%.2f", self.y.velocity))
+  local orientation_string = "ORI: ".. string.format("%.2f", self.rotation.base) .. "\tTAR: " .. string.format("%.2f", self.rotation.base_target)
+  local screen_string = "SCREEN DIMS W: " .. self.x.bound .. " H: " .. self.y.bound
+  lg.setColor(255, 0, 0, 255)
+  lg.setFont(lg.newFont(15))
+  lg.printf(position_string,10, 64, 500, 'left')
+  lg.printf(target_string, 10, 48, 500, 'left')
+  lg.printf(velocity_string, 10, 32, 500, 'left')
+  lg.printf(orientation_string, 10, 16, 500, 'left')
+  lg.printf(screen_string, 10, 80, 500, 'left')
   -- HIT BOX
-  love.graphics.rectangle("fill", self.hitbox.x_max, self.hitbox.y_min, 2, 2)
-  love.graphics.rectangle("fill", self.hitbox.x_min, self.hitbox.y_max, 2, 2)
-  love.graphics.rectangle("fill", self.hitbox.x_min, self.hitbox.y_min, 2, 2)
-  love.graphics.rectangle("fill", self.hitbox.x_max, self.hitbox.y_max, 2, 2)
+  lg.rectangle("fill", self.hitbox.x_max, self.hitbox.y_min, 2, 2)
+  lg.rectangle("fill", self.hitbox.x_min, self.hitbox.y_max, 2, 2)
+  lg.rectangle("fill", self.hitbox.x_min, self.hitbox.y_min, 2, 2)
+  lg.rectangle("fill", self.hitbox.x_max, self.hitbox.y_max, 2, 2)
+  lg.rectangle("fill", self.x.position, self.y.position, 2, 2)
   -- HIT BOX
-  love.graphics.reset()
+  lg.reset()
 end
 
 -- DRAW THE TANK
-function Tank:drawLayer1(shader)
-  love.graphics.setShader(shader)
-  love.graphics.draw(self.sprite.layer1.img, self.x.position, self.y.position, self.rotation.base, 1, 1, self.sprite.layer1.width/2, self.sprite.layer1.height/2)
-  love.graphics.setShader()
+function Tank:drawLayer1()
+  lg.draw(self.sprite.layer1.img, self.x.position, self.y.position, self.rotation.base, 1, 1, self.sprite.layer1.width/2, self.sprite.layer1.height/2)
 end
 
 function Tank:drawHalo(shader)
-  love.graphics.setShader(shader)
-  love.graphics.draw(self.sprite.selected.img, self.x.position, self.y.position, self.rotation.base, 1, 1, self.sprite.selected.width/2, self.sprite.selected.height/2)
-  love.graphics.setShader()
+  lg.setShader(shader)
+  lg.draw(self.sprite.selected.img, self.x.position, self.y.position, self.rotation.base, 1, 1, self.sprite.selected.width/2, self.sprite.selected.height/2)
+  lg.setShader()
 end
 
-function Tank:drawLayer2(shader)
-  love.graphics.setShader(shader)
-  love.graphics.draw(self.sprite.layer2.img, self.x.position, self.y.position, self.rotation.base + self.rotation.turrent, 1, 1, self.sprite.layer2.width/2, self.sprite.layer2.height/2)
-  love.graphics.setShader()
+function Tank:drawLayer2()
+  lg.draw(self.sprite.layer2.img, self.x.position, self.y.position, self.rotation.base + self.rotation.turrent, 1, 1, self.sprite.layer2.width/2, self.sprite.layer2.height/2)
 end
 
 -- ROTATE UPPER LAYER
@@ -197,7 +199,7 @@ function Tank:check_for_collision(x, y)
 end
 
 function Tank:fire_main_weapon()
-  data = {self.id, self.projectile.speed, self.projectile.lifespan, self.projectile.img_path, self.x.position, self.y.position, (self.rotation.turrent + self.rotation.base), self.x.bound, self.y.bound, self.sprite.layer2.height*2}
+  data = {self.id, self.team, self.projectile.speed, self.projectile.lifespan, self.projectile.img_path, self.x.position, self.y.position, (self.rotation.turrent + self.rotation.base), self.x.bound, self.y.bound, self.sprite.layer2.height*2}
   return data
 end
 
@@ -213,19 +215,19 @@ end
 -- EXCITING INERTIAL WASD CONTROL
 function Tank:userControl()
   if self.selected == true then
-    if love.keyboard.isDown("left", "a", "right", "d", "up", "w", "down", "s") then
+    if love.keyboard.isDown("left", "a", "right", "d", "up", "w", "down", "s", "h", "j", "k", "l") then
       self.autonomous = false
       self.y.target = self.y.position
       self.x.target = self.x.position
     end
-    if love.keyboard.isDown("left", "a") then
+    if love.keyboard.isDown("left", "a", "h") then
       self:turn_left()
-    elseif love.keyboard.isDown("right", "d") then
+    elseif love.keyboard.isDown("right", "d", "l") then
       self:turn_right()
     end
-    if love.keyboard.isDown("up", "w") then
+    if love.keyboard.isDown("up", "w", "k") then
       self:forwards()
-    elseif love.keyboard.isDown("down", "s") then
+    elseif love.keyboard.isDown("down", "s", "j") then
       self:backwards()
     else
       self:slow_to_stop()
@@ -287,20 +289,20 @@ function Tank:approachTarget(dt)
 end
 
 function Tank:draw_path()
-  love.graphics.setColor(255, 0, 0, 255)
+  lg.setColor(255, 0, 0, 255)
   for i, x in ipairs(self.x.path) do
     if i < #self.x.path then
       y = self.y.path[i]
-      love.graphics.line(x, y, self.x.path[i + 1], self.y.path[i + 1])
+      lg.line(x, y, self.x.path[i + 1], self.y.path[i + 1])
     end
   end
-  -- love.graphics.setColor(0, 0, 255, 255)
+  -- lg.setColor(0, 0, 255, 255)
   -- for i, node in ipairs(self.reverse_path) do
   --   if i < #self.reverse_path - 1 then
-  --     love.graphics.line(node.x * self.path_map_resolution, node.y * self.path_map_resolution, self.reverse_path[i + 1].x * self.path_map_resolution, self.reverse_path[i + 1].y * self.path_map_resolution)
+  --     lg.line(node.x * self.path_map_resolution, node.y * self.path_map_resolution, self.reverse_path[i + 1].x * self.path_map_resolution, self.reverse_path[i + 1].y * self.path_map_resolution)
   --   end
   -- end
-  love.graphics.reset()
+  lg.reset()
 end
 
 -- add another node to the tanks path

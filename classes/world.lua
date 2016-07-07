@@ -76,7 +76,7 @@ function World:generate()
       end
     end
   end
-  self.path_map = combine_maps(remove_inaccessibles(self.path_map), remove_inaccessibles(reverse_map(self.path_map)))
+  self.path_map = combine_maps(find_biggest_island(self.path_map), find_biggest_island(reverse_map(self.path_map)))
   return self.path_map
 end
 
@@ -98,10 +98,8 @@ function reverse_map(map)
   return reversed
 end
 
--- this doesnt work properly yet but is fixed by running it on reversed map
--- to be replaced with flood fill I think
-function remove_inaccessibles(map)
-  local lumps = {{map[1]}}
+function find_biggest_island(map)
+  local lumps = {{map[1]}}  --lumps are islands, but lumps sounds cuter
   for i, node in ipairs(map) do
     local in_lump = false
     local the_lump = 1
@@ -129,6 +127,9 @@ function remove_inaccessibles(map)
       table.insert(lumps, new_lump)
     end
   end
+
+-- join neighbouring lumps here
+
   local cleaned_map = {}
   for i, lump in ipairs(lumps) do
     if #lump > #cleaned_map then
@@ -168,73 +169,73 @@ end
 
 function World:makeCanvas(biome)
   -- Draw the Height Map to a canvas
-  self.canvas = love.graphics.newCanvas(self.width, self.height)
-  love.graphics.setCanvas(self.canvas)
+  self.canvas = lg.newCanvas(self.width, self.height)
+  lg.setCanvas(self.canvas)
   colors = {}
   -- Render Base Image
   for i = 1, self.width, self.render_resolution do
     for j = 1, self.height, self.render_resolution do
       if self.map[i][j] < self.deep_water then
         color = mix_colors(self.biomes[biome].deep_water, self.biomes[biome].deep_water, self.map[i][j], self.deep_water, 0.0)
-        love.graphics.setColor(color)
+        lg.setColor(color)
       elseif self.map[i][j] < self.shallow_water then
         color = mix_colors(self.biomes[biome].deep_water, self.biomes[biome].shallow_water, self.map[i][j], self.shallow_water, self.deep_water)
-        love.graphics.setColor(color)
+        lg.setColor(color)
       elseif self.map[i][j] < self.beach then
         color = mix_colors(self.biomes[biome].shallow_water, self.biomes[biome].beach, self.map[i][j], self.beach, self.shallow_water)
-        love.graphics.setColor(color)
+        lg.setColor(color)
       elseif self.map[i][j] < self.low_land then
         color = mix_colors(self.biomes[biome].beach, self.biomes[biome].low_land, self.map[i][j], self.low_land, self.beach)
-        love.graphics.setColor(color)
+        lg.setColor(color)
       elseif self.map[i][j] < self.mid_land then
         color = mix_colors(self.biomes[biome].low_land, self.biomes[biome].mid_land, self.map[i][j], self.mid_land, self.low_land)
-        love.graphics.setColor(color)
+        lg.setColor(color)
       else
         color = mix_colors(self.biomes[biome].mid_land, self.biomes[biome].hills, self.map[i][j], 1.0, self.mid_land)
-        love.graphics.setColor(color)
+        lg.setColor(color)
       end
-      -- love.graphics.point( i - 1, j - 1 )
-      love.graphics.rectangle("fill", i-1, j-1, self.render_resolution, self.render_resolution)
+      -- lg.point( i - 1, j - 1 )
+      lg.rectangle("fill", i-1, j-1, self.render_resolution, self.render_resolution)
     end
   end
-  love.graphics.setCanvas()
+  lg.setCanvas()
 end
 
 function World:imageCanvas(tiles)
   local images = {}
   for _, path in pairs(tiles) do
-    new_image = love.graphics.newImage(path)
+    new_image = lg.newImage(path)
     table.insert(images, new_image)
   end
   -- Draw the Height Map to a canvas
-  self.canvas = love.graphics.newCanvas(self.width, self.height)
-  love.graphics.setCanvas(self.canvas)
+  self.canvas = lg.newCanvas(self.width, self.height)
+  lg.setCanvas(self.canvas)
   for i = 1, self.width, self.render_resolution do
     for j = 1, self.height, self.render_resolution do
       if self.map[i][j] < self.deep_water then
-        love.graphics.draw(images[1], i, j, 0, 0.2, 0.2)
+        lg.draw(images[1], i, j, 0, 0.2, 0.2)
       elseif self.map[i][j] < self.shallow_water then
-        love.graphics.draw(images[2], i, j, 0, 0.2, 0.2)
+        lg.draw(images[2], i, j, 0, 0.2, 0.2)
       elseif self.map[i][j] < self.beach then
-        love.graphics.draw(images[3], i, j, 0, 0.2, 0.2)
+        lg.draw(images[3], i, j, 0, 0.2, 0.2)
       elseif self.map[i][j] < self.low_land then
-        love.graphics.draw(images[4], i, j, 0, 0.2, 0.2)
+        lg.draw(images[4], i, j, 0, 0.2, 0.2)
       elseif self.map[i][j] < self.mid_land then
-        love.graphics.draw(images[5], i, j, 0, 0.2, 0.2)
+        lg.draw(images[5], i, j, 0, 0.2, 0.2)
       else
-        love.graphics.draw(images[6], i, j, 0, 0.2, 0.2)
+        lg.draw(images[6], i, j, 0, 0.2, 0.2)
       end
-      -- love.graphics.point( i - 1, j - 1 )
-      -- love.graphics.rectangle("fill", i-1, j-1, self.render_resolution, self.render_resolution)
+      -- lg.point( i - 1, j - 1 )
+      -- lg.rectangle("fill", i-1, j-1, self.render_resolution, self.render_resolution)
     end
   end
-  love.graphics.setCanvas()
+  lg.setCanvas()
 end
 
 function World:drawDebug()
-  love.graphics.setColor(200, 0, 255, 255)
+  lg.setColor(200, 0, 255, 255)
   for i, node in ipairs(self.path_map) do
-    love.graphics.rectangle("fill", node.x * self.path_resolution , node.y * self.path_resolution, 2, 2)
+    lg.rectangle("fill", node.x * self.path_resolution , node.y * self.path_resolution, 2, 2)
   end
 end
 
@@ -252,7 +253,7 @@ function mix_colors(color1, color2, val, max, min)
 end
 
 function World:draw()
-  love.graphics.draw(self.canvas)
+  lg.draw(self.canvas)
 end
 
 return World

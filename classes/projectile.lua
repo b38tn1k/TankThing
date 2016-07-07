@@ -5,7 +5,7 @@ Projectile.__index = Projectile
 function Projectile.create( data )
   local p = {}
   setmetatable( p, Projectile )
-  parent_id, speed, lifespan, img_pth, x_pos, y_pos, rotation = data[1], data[2], data[3], data[4], data[5], data[6], data[7]
+  parent_id, parent_team, speed, lifespan, img_pth, x_pos, y_pos, rotation = data[1], data[2], data[3], data[4], data[5], data[6], data[7], data[8]
   p.x = {}
   p.y = {}
   p.age = 0
@@ -13,7 +13,8 @@ function Projectile.create( data )
   p.sprite = {}
   p.rotation = rotation
   p.parent_id = parent_id
-  p.sprite.img = love.graphics.newImage(img_pth)
+  p.parent_team = parent_team
+  p.sprite.img = lg.newImage(img_pth)
   p.sprite.width = p.sprite.img:getWidth()
   p.sprite.height = p.sprite.img:getHeight()
   p.x.position = x_pos + p.sprite.width/2
@@ -27,9 +28,9 @@ end
 
 -- DRAW THE MISSILES
 function Projectile:draw(shader)
-  love.graphics.setShader(shader)
-  love.graphics.draw( self.sprite.img, self.x.position- math.floor( self.sprite.width/2 ), self.y.position - math.floor( self.sprite.height/2 ), self.rotation, 1, 1, self.sprite.width/2, self.sprite.height/2)
-  love.graphics.setShader()
+  lg.setShader(shader)
+  lg.draw( self.sprite.img, self.x.position- math.floor( self.sprite.width/2 ), self.y.position - math.floor( self.sprite.height/2 ), self.rotation, 1, 1, self.sprite.width/2, self.sprite.height/2)
+  lg.setShader()
 end
 
 -- UPDATE MISSILES

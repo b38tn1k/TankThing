@@ -1,3 +1,9 @@
+function proto_team(size)
+  local new_team = {}
+  new_team.size = size
+  return new_team
+end
+
 local game = {}
 
 game.tanks = {}
@@ -12,34 +18,53 @@ game.pause = true
 game.debug = false
 game.assets = {}
 game.screen = {}
+game.draw_blank_screen = false
+game.team = {}
+game.team.count = 2
+game.screen = {}
+game.screen.width = 0
+game.screen.height = 0
+game.player = {}
+game.player.team = 1
+for i = 1, 4 do
+  table.insert(game.team, proto_team(4))
+end
 
 function new()
+  game.screen.width, game.screen.height = lg.getDimensions()
+  game.draw_blank_screen = true
   game.worldseed = game.world:newSeed()
   game.path_map = game.world:generate()
   game.world:makeCanvas(1)
   game.tanks = {}
   game.hidden_tanks = {}
-  tank1 = Tank.create(game.screen.width, game.screen.height, top_speed, projectile_speed, projectile_lifespan, game.path_map, game.path_resolution, game.assets.small_tanks.blue)
-  tank2 = Tank.create(game.screen.width, game.screen.height, top_speed, projectile_speed, projectile_lifespan, game.path_map, game.path_resolution, game.assets.small_tanks.red)
-  tank3 = Tank.create(game.screen.width, game.screen.height, top_speed, projectile_speed, projectile_lifespan, game.path_map, game.path_resolution, game.assets.small_tanks.black)
-  tank4 = Tank.create(game.screen.width, game.screen.height, top_speed, projectile_speed, projectile_lifespan, game.path_map, game.path_resolution, game.assets.small_tanks.green)
-  random_node = math.random( #game.path_map)
-  tank1:init(1, game.path_map[random_node].x * game.path_resolution, game.path_map[random_node].y * game.path_resolution, math.random())
-  random_node = math.random( #game.path_map)
-  tank2:init(2, game.path_map[random_node].x * game.path_resolution, game.path_map[random_node].y * game.path_resolution, math.random())
-  random_node = math.random( #game.path_map)
-  tank3:init(3, game.path_map[random_node].x * game.path_resolution, game.path_map[random_node].y * game.path_resolution, math.random())
-  random_node = math.random( #game.path_map)
-  tank4:init(4, game.path_map[random_node].x * game.path_resolution, game.path_map[random_node].y * game.path_resolution, math.random())
-  table.insert(game.tanks, tank1)
-  table.insert(game.tanks, tank2)
-  table.insert(game.tanks, tank3)
-  table.insert(game.tanks, tank4)
+  local id = 1
+  for i = 1, game.team.count do
+    local random_area = math.random((#game.path_map / game.team.count) * i) -- find a basic area
+    local neighbours = find_more_neighbours(game.path_map[random_area], game.path_map, 2, 2) -- generate surrounding potential spawn points
+    for j = 1, game.team[i].size do
+      local random_position = math.random(#neighbours)
+      local random_node = neighbours[random_position]
+      tank = Tank.create(game.screen.width, game.screen.height, top_speed, projectile_speed, projectile_lifespan, game.path_map, game.path_resolution, game.assets.small_tanks[i])
+      tank:init(id, i, random_node, math.random())
+      id = id + 1
+      table.remove(neighbours, random_position)
+      for k = 1, game.team[i].size do -- remove potential surrounding spawn points
+        table.remove(neighbours, random_position + k)
+        table.remove(neighbours, random_position - k)
+      end
+      table.insert(game.tanks, tank)
+    end
+  end
+
   game.pause = false
+  game.draw_blank_screen = false
 end
 game.new = new
 
 function resize()
+  game.screen.width, game.screen.height = lg.getDimensions()
+  game.draw_blank_screen = true
   -- REBUILD WORLD, MENU
   game.world = World.create(game.screen.width, game.screen.height, game.path_resolution, render_resolution)
   game.world.seed = game.worldseed -- naming sort of sucks here :-P
@@ -72,6 +97,7 @@ function resize()
   for i, index in ipairs(to_remove) do
     table.remove(game.tanks, index)
   end
+  game.draw_blank_screen = false
 end
 game.resize = resize
 
@@ -103,17 +129,25 @@ game.update_projectiles = update_projectiles
 function fire_active_tank()
   for j, tank in ipairs(game.tanks) do
     if tank.selected == true then
-      projectile = Projectile.create(tank:fire_main_weapon())
-      table.insert(game.projectiles, projectile)
+      game.make_tank_shoot(tank)
     end
   end
 end
 game.fire_active_tank = fire_active_tank
 
+function make_tank_shoot(tank)
+  local data = tank:fire_main_weapon()
+  if next(data) ~= nil then
+    projectile = Projectile.create(data)
+    table.insert(game.projectiles, projectile)
+  end
+end
+game.make_tank_shoot = make_tank_shoot
+
 function select_tank(x, y)
   local newly_selected = false
   for j, tank in ipairs(game.tanks) do
-    if tank:check_for_collision(x, y) then
+    if tank:check_for_collision(x, y) and tank.team == game.player.team then
       for j, other_tank in ipairs(game.tanks) do
         other_tank.selected = false
       end
