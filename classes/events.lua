@@ -5,6 +5,7 @@ function love.mousepressed(x, y, button, istouch)
       game.screen.width, game.screen.height = love.window.getDesktopDimensions(1)
       game.new()
     end
+    game.menu:updateTeams(x, y)
   else
     if button == 'l' then
       game.select_tank(x, y)
@@ -32,4 +33,5 @@ end
 function love.resize(w, h)
   game.screen.width, game.screen.height = w, h
   game.resize()
+  lg.reset()
 end

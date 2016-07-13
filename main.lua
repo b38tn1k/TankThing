@@ -49,6 +49,7 @@ end
 function love.update(dt)
   -- PAUSE MENU
   if game.pause == true then
+    game.menu:update()
     for j, tank in ipairs(game.tanks) do
       tank.selected = false
     end
@@ -68,7 +69,7 @@ function love.update(dt)
     end
     -- UPDATE TANKS
     game.update_tanks(dt)
-    targetting(game.tanks, game.projectiles)
+    -- targetting(game.tanks, game.projectiles)
     -- UPDATE PROJECTILES
     game.update_projectiles(dt)
   end
@@ -78,27 +79,19 @@ function love.draw()
   if game.draw_blank_screen == false then
     -- SPOTLIGHT SHADER
     lg.setShader(spotlight)
-    -- ALWAYS DRAW WORLD
+    -- DRAW WORLD
     game.world:draw()
-    -- PAUSE GAME MENU
-    if game.pause == true then
-      game.menu:draw()
-    else
-      -- DRAW TANK BASE LAYERS
-      for j, tank in ipairs(game.tanks) do
-        -- if tank.selected then
-          -- tank:drawHalo(flasher)
-        -- end
-        tank:drawLayer1()
-      end
-      -- DRAW PROJECTILES
-      for i, projectile in ipairs(game.projectiles) do
-        projectile:draw()
-      end
-      -- DRAW TANK TURRENTS
-      for j, tank in ipairs(game.tanks) do
-        tank:drawLayer2()
-      end
+    -- DRAW TANK BASE LAYERS
+    for j, tank in ipairs(game.tanks) do
+      tank:drawLayer1()
+    end
+    -- DRAW PROJECTILES
+    for i, projectile in ipairs(game.projectiles) do
+      projectile:draw()
+    end
+    -- DRAW TANK TURRENTS
+    for j, tank in ipairs(game.tanks) do
+      tank:drawLayer2()
     end
     -- DEBUG VIEW ON TOP
     if game.debug == true then
@@ -109,6 +102,10 @@ function love.draw()
           tank:drawDebug()
         end
       end
+    end
+    -- PAUSE GAME MENU
+    if game.pause == true then
+      game.menu:draw()
     end
     lg.setShader()
     lg.reset()
