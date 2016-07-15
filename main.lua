@@ -43,7 +43,7 @@ function love.load()
   -- top_speed = 30
   top_speed = 60
   projectile_speed = 200
-  projectile_lifespan = 1 -- SECONDS
+  projectile_lifespan = 0.5 -- SECONDS
 end
 
 function love.update(dt)
@@ -68,10 +68,10 @@ function love.update(dt)
       spotlight:send("radius", 0)
     end
     -- UPDATE TANKS
-    game.update_tanks(dt)
-    -- targetting(game.tanks, game.projectiles)
+    game.updateTanks(dt)
+    targetting(game.tanks, game.projectiles)
     -- UPDATE PROJECTILES
-    game.update_projectiles(dt)
+    game.updateProjectiles(dt)
   end
 end
 

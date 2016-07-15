@@ -10,7 +10,7 @@ function Tank.create(x_bound, y_bound, top_speed, projectile_speed, projectile_l
   t.selected = false
   t.top_speed = 400
   t.vel_gain = 0.12
-  t.rot_gain = 0.12
+  t.rot_gain = 0.1
   t.acceptable_lin_error = 0.01
   t.acceptable_rad_error = math.rad(45)
   t.autonomous = true
@@ -117,11 +117,12 @@ function Tank:drawHalo(shader)
 end
 
 function Tank:drawLayer2()
+  -- lg.draw(self.sprite.layer2.img, self.x.position, self.y.position, self.rotation.base + self.rotation.turrent, 1, 1, self.sprite.layer2.width/2, self.sprite.layer2.height/2)
   lg.draw(self.sprite.layer2.img, self.x.position, self.y.position, self.rotation.base + self.rotation.turrent, 1, 1, self.sprite.layer2.width/2, self.sprite.layer2.height/2)
 end
 
 -- ROTATE UPPER LAYER
-function Tank:rotate_turrent()
+function Tank:rotateTurrent()
   if self.selected == true then
     if self.rotation.turrent_target > math.rad(110) then
       self.rotation.turrent_target = math.rad(100)
@@ -151,42 +152,42 @@ function Tank:controlDampener(value, target, factor)
 end
 
 -- UPDATE VELOCITIES
-function Tank:update_velocities()
+function Tank:updateVelocities()
   self.y.velocity = self.speed * math.sin(self.rotation.base + math.rad(90))
   self.x.velocity = self.speed * math.cos(self.rotation.base + math.rad(90))
 end
 
 -- TURN LEFT
-function Tank:turn_left()
+function Tank:turnLeft()
   self.rotation.base_target = self.rotation.base_target - 0.05
-  self:update_velocities()
+  self:updateVelocities()
 end
 
 -- TURN RIGHT
-function Tank:turn_right()
+function Tank:turnRight()
   self.rotation.base_target = self.rotation.base_target + 0.05
-  self:update_velocities()
+  self:updateVelocities()
 end
 
 -- GO FORWARD
 function Tank:forwards()
   self.speed = self:controlDampener(self.speed, 0 - self.top_speed, self.vel_gain)
-  self:update_velocities()
+  self:updateVelocities()
 end
 
 -- GO BACKWARDS
 function Tank:backwards()
   self.speed = self:controlDampener(self.speed, self.top_speed, self.vel_gain)
-  self:update_velocities()
+  self:updateVelocities()
 end
 
 -- STOP
-function Tank:slow_to_stop()
+function Tank:slow2stop()
   self.speed = self:controlDampener(self.speed, 0, self.vel_gain)
-  self:update_velocities()
+  self:updateVelocities()
 end
 
-function Tank:check_for_collision(x, y)
+function Tank:check4collision(x, y)
   collision = false
   if x ~= nil and y ~= nil then
     if x >= self.hitbox.x_min and x <= self.hitbox.x_max then
@@ -198,13 +199,13 @@ function Tank:check_for_collision(x, y)
   return collision
 end
 
-function Tank:fire_main_weapon()
-  data = {self.id, self.team, self.projectile.speed, self.projectile.lifespan, self.projectile.img_path, self.x.position, self.y.position, (self.rotation.turrent + self.rotation.base), self.x.bound, self.y.bound, self.sprite.layer2.height*2}
+function Tank:fireMainWeapon()
+  data = {self.id, self.team, self.projectile.speed, self.projectile.lifespan, self.projectile.img_path, self.x.position, self.y.position, self.rotation.turrent + self.rotation.base, self.x.bound, self.y.bound, self.sprite.layer2.height*2}
   return data
 end
 
 -- RETURN CLOSEST VALUE TO ZERO
-function Tank:closestToZero(x, y)
+function Tank:closest2Zero(x, y)
   new_value = math.min(math.abs(x), math.abs(y))
   if x < 0 and y < 0 then
     new_value = new_value * -1
@@ -221,19 +222,19 @@ function Tank:userControl()
       self.x.target = self.x.position
     end
     if love.keyboard.isDown("left", "a", "h") then
-      self:turn_left()
+      self:turnLeft()
     elseif love.keyboard.isDown("right", "d", "l") then
-      self:turn_right()
+      self:turnRight()
     end
     if love.keyboard.isDown("up", "w", "k") then
       self:forwards()
     elseif love.keyboard.isDown("down", "s", "j") then
       self:backwards()
     else
-      self:slow_to_stop()
+      self:slow2stop()
     end
   else
-    self:slow_to_stop()
+    self:slow2stop()
   end
 end
 
@@ -278,17 +279,17 @@ function Tank:approachTarget(dt)
   local delta_x = (x_pos_poscont_contrib - self.x.position) / dt
   local delta_y = (y_pos_poscont_contrib - self.y.position) / dt
   if self.autonomous then
-    self.x.velocity = self:closestToZero(delta_x, self.x.speed)
-    self.y.velocity = self:closestToZero(delta_y, self.y.speed)
+    self.x.velocity = self:closest2Zero(delta_x, self.x.speed)
+    self.y.velocity = self:closest2Zero(delta_y, self.y.speed)
   end
   --check if arrived and if there are more points to go to
-  if self:check_for_collision(self.x.path[self.path_index], self.y.path[self.path_index]) == true and self.x.path[self.path_index + 1] ~= nil then
+  if self:check4collision(self.x.path[self.path_index], self.y.path[self.path_index]) == true and self.x.path[self.path_index + 1] ~= nil then
     self.path_index = self.path_index + 1
     self:setTarget(self.x.path[self.path_index], self.y.path[self.path_index])
   end
 end
 
-function Tank:draw_path()
+function Tank:drawPath()
   lg.setColor(255, 0, 0, 255)
   for i, x in ipairs(self.x.path) do
     if i < #self.x.path then
@@ -310,7 +311,7 @@ function Tank:addWaypoint(x, y)
   -- find the closest node to the end
   local scaled_x_goal = math.floor(x/self.path_map_resolution)
   local scaled_y_goal = math.floor(y/self.path_map_resolution)
-  local goal = find_node(scaled_x_goal, scaled_y_goal, self.path_map)
+  local goal = findNode(scaled_x_goal, scaled_y_goal, self.path_map)
   if goal then
     if self.autonomous ~= true then
       self.autonomous = true
@@ -323,7 +324,7 @@ function Tank:addWaypoint(x, y)
       -- determine the starting node for a*
       local scaled_x_start = math.floor(self.x.path[self.path_length]/self.path_map_resolution)
       local scaled_y_start = math.floor(self.y.path[self.path_length]/self.path_map_resolution)
-      local start = find_node(scaled_x_start, scaled_y_start, self.path_map)
+      local start = findNode(scaled_x_start, scaled_y_start, self.path_map)
       raw_path = Astar(start, goal, self.path_map)
       -- reverse = Astar(goal, start, self.path_map)
       -- for i, node in ipairs(reverse) do
@@ -359,8 +360,8 @@ end
 
 -- APPLY MOVEMENT and stuff
 function Tank:update(dt, speed_modifier)
-  self:userControl()
-  self:rotate_turrent()
+  -- self:userControl()
+  -- self:rotateTurrent()
   self:approachTarget(dt)
   -- MOVE
   if math.abs(self.rotation.base - self.rotation.base_target) < self.acceptable_rad_error then
@@ -382,6 +383,12 @@ function Tank:update(dt, speed_modifier)
       self.y.position = self.hitbox.offset
     end
   end
+  -- if self.rotation.turrent_target > math.rad(110) then
+  --   self.rotation.turrent_target = math.rad(100)
+  -- elseif self.rotation.turrent_target < 0 - math.rad(110) then
+  --   self.rotation.turrent_target = 0 - math.rad(100)
+  -- end
+
   self.rotation.turrent = self:controlDampener(self.rotation.turrent, self.rotation.turrent_target, self.rot_gain)
   self.rotation.base = self:controlDampener(self.rotation.base, self.rotation.base_target, self.rot_gain)
 end

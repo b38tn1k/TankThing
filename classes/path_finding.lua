@@ -1,4 +1,4 @@
-function clean_path(path, map)
+function cleanPath(path, map)
   -- takes the path throguh the map
   local cleaned = {}
   local neighbours = {}
@@ -7,25 +7,25 @@ function clean_path(path, map)
   local latch = 0
   -- go through every node in the path
   for i, node in ipairs(path) do
-    neighbours = find_neighbours(node, map)
+    neighbours = findNeighbours(node, map)
     for j = (length), i + 2, -1 do
       -- go from last node in the path back to the current node
       -- find overlaping/looping sections, but only the biggest ones
-      if i > latch and node_in_set(path[j], neighbours) then
+      if i > latch and nodeInSet(path[j], neighbours) then
         table.insert(overlaps, {i, j})
         latch = j
       end
     end
   end
   for i, node in ipairs(path) do
-    if not_in_ranges(i, overlaps) then
+    if notInRanges(i, overlaps) then
       table.insert(cleaned, node)
     end
   end
   return cleaned
 end
 
-function not_in_ranges(i, ranges)
+function notInRanges(i, ranges)
   result = true
   for _, range in ipairs(ranges) do
     if i > range[1] and i < range[2] then
@@ -35,7 +35,7 @@ function not_in_ranges(i, ranges)
   return result
 end
 
-function node_in_set(node, set)
+function nodeInSet(node, set)
   result = false
   for _, a_node in ipairs(set) do
     if node.x == a_node.x and node.y == a_node.y then
@@ -45,7 +45,7 @@ function node_in_set(node, set)
   return result
 end
 
-function find_node(x, y, path_map)
+function findNode(x, y, path_map)
   local node = nil
   for i, a_node in ipairs(path_map) do
     if a_node.x == x and a_node.y == y then
@@ -56,7 +56,7 @@ function find_node(x, y, path_map)
 end
 
 -- Find Neighbouring nodes in the path_map
-function find_neighbours(node, path_map)
+function findNeighbours(node, path_map)
   local neighbours = {}
   local y = node.y
   local x = node.x
@@ -68,20 +68,20 @@ function find_neighbours(node, path_map)
   return neighbours
 end
 
-function find_more_neighbours(node, map, size, distance)
-  local neighbours = find_almost_neighbours(node, map, distance)
+function findMoreNeighbours(node, map, size, distance)
+  local neighbours = findAlmostNeighbours(node, map, distance)
   while size ~= 0 do
     local nb = {}
     for _, neighbour in ipairs(neighbours) do
-      nb = find_almost_neighbours(neighbour, map, distance)
-      neighbours = combine_maps(nb, neighbours)
+      nb = findAlmostNeighbours(neighbour, map, distance)
+      neighbours = combineMaps(nb, neighbours)
     end
     size = size - 1
   end
   return neighbours
 end
 
-function find_almost_neighbours(node, map, distance)
+function findAlmostNeighbours(node, map, distance)
   local neighbours = {}
   local y = node.y
   local x = node.x
@@ -94,7 +94,7 @@ function find_almost_neighbours(node, map, distance)
 end
 
 -- Find lazy non euclid distance
-function heuristic_distance(a, b)
+function heuristicDistance(a, b)
   return ((b.x - a.x) * (b.x - a.x)) + ((b.y - a.y) * (b.y - a.y))
 end
 
@@ -103,7 +103,7 @@ function Astar(start, goal, path_map)
   local open = {}
   local closed = {}
   start.g = 0
-  start.h = heuristic_distance(start, goal)
+  start.h = heuristicDistance(start, goal)
   start.f = start.g + start.h
   table.insert(open, start)
   while not(next(open) == nil) do
@@ -118,13 +118,13 @@ function Astar(start, goal, path_map)
     end
     table.remove(open, to_remove)
     -- find the neighbours of q and set them up
-    for j, neighbour in ipairs(find_neighbours(q, path_map)) do
+    for j, neighbour in ipairs(findNeighbours(q, path_map)) do
       if neighbour.x == goal.x and neighbour.y == goal.y then
         open = {}
         break
       end
-      neighbour.g = q.g + heuristic_distance(neighbour, q)
-      neighbour.h = heuristic_distance(neighbour, goal)
+      neighbour.g = q.g + heuristicDistance(neighbour, q)
+      neighbour.h = heuristicDistance(neighbour, goal)
       neighbour.f = neighbour.g + neighbour.h
       -- check for duplicates in open and closed lists
       local add = true
@@ -145,6 +145,6 @@ function Astar(start, goal, path_map)
     -- add q to the closed list
     table.insert(closed, q)
   end
-  cleaned_closed = clean_path(closed, path_map)
+  cleaned_closed = cleanPath(closed, path_map)
   return cleaned_closed
 end

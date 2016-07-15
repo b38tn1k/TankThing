@@ -1,14 +1,14 @@
 function love.mousepressed(x, y, button, istouch)
   if game.pause == true then
     -- NEW GAME BUTTON
-    if game.menu:new_game_button(x, y) == true then
+    if game.menu:newGameButton(x, y) == true then
       game.screen.width, game.screen.height = love.window.getDesktopDimensions(1)
       game.new()
     end
     game.menu:updateTeams(x, y)
   else
     if button == 'l' then
-      game.select_tank(x, y)
+      game.selectTank(x, y)
     end
   end
 end
@@ -18,7 +18,9 @@ function love.keyreleased(key)
     -- GAME MENU OPTIONS
   else
     if key == " " then
-      game.fire_active_tank()
+      game.fireActiveTank()
+    elseif key == "backspace" then
+      game.deselectTanks()
     end
   end
   -- TOGGLEABLE REGARDLESS OF GAME STATE

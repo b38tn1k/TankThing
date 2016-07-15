@@ -26,7 +26,7 @@ function Menu.create(width, height, assets)
   m.tank_buttons = {}
   m.tank_start_y = m.border + m.logo:getHeight()
   m.tank_start_x = m.ngbutton_dims[1]
-  m.team_count = {1, 2, 3, 4}
+  m.team_sizes = {1, 1, 0, 0}
   m.tank_logo_height = m.tlogos[1]:getHeight()
   return m
 end
@@ -34,7 +34,7 @@ end
 function Menu:update()
   self.tank_buttons = {}
   local button = {}
-  for i, count in ipairs(self.team_count) do
+  for i, count in ipairs(self.team_sizes) do
     button = {}
     button.delineator = self.tank_start_x + (count + 1) * self.border
     button.min_y = self.tank_start_y + i * self.tank_logo_height
@@ -53,7 +53,7 @@ function Menu:draw()
   -- DRAW LOGO/NEW GAME BUTTON
   lg.draw(self.logo, self.ngbutton_dims[1], self.ngbutton_dims[3], 0, 1, 1)
   -- DRAW TANKS
-  for i, team in ipairs(self.team_count) do -- for every team
+  for i, team in ipairs(self.team_sizes) do -- for every team
     for j = 1, team do -- for every team member
       local xpos = self.tank_start_x + self.border * j
       local ypos = self.tank_start_y + i * self.tank_logo_height
@@ -62,7 +62,7 @@ function Menu:draw()
   end
 end
 
-function Menu:new_game_button(x, y)
+function Menu:newGameButton(x, y)
   dims = self.ngbutton_dims
   return x > dims[1] and x < dims[2] and y > dims[3] and y < dims[4]
 end
@@ -71,11 +71,11 @@ function Menu:updateTeams(x, y)
   for i, button in ipairs(self.tank_buttons) do
     if y > button.min_y and y < button.max_y then
       if x > button.delineator then
-        if self.team_count[i] < 5 then
-          self.team_count[i] = self.team_count[i] + 1
+        if self.team_sizes[i] < 5 then
+          self.team_sizes[i] = self.team_sizes[i] + 1
         end
       else
-        self.team_count[i] = self.team_count[i] - 1
+        self.team_sizes[i] = self.team_sizes[i] - 1
       end
     end
   end

@@ -70,27 +70,27 @@ function World:generate()
       node.x = x
       node.y = (j + self.path_resolution - 1) / self.path_resolution
       -- could be improved to find average of terrain for more realistic mapping
-      terrain_value = get_average_value(self.map, i, j, self.path_resolution, self.height, self.width)
+      terrain_value = getAverageValue(self.map, i, j, self.path_resolution, self.height, self.width)
       if terrain_value > self.traversable then
         table.insert(self.path_map, node)
       end
     end
   end
-  self.path_map = combine_maps(find_biggest_island(self.path_map), find_biggest_island(reverse_map(self.path_map)))
+  self.path_map = combineMaps(findBiggestIsland(self.path_map), findBiggestIsland(reverseMap(self.path_map)))
   return self.path_map
 end
 
-function combine_maps(mapa, mapb)
+function combineMaps(mapa, mapb)
   local new_map = mapa
   for _, node in ipairs(mapb) do
-    if not node_in_set(node, new_map) then
+    if not nodeInSet(node, new_map) then
       table.insert(new_map, node)
     end
   end
   return new_map
 end
 
-function reverse_map(map)
+function reverseMap(map)
   local reversed = {}
   for i  = #map, 1, -1 do
     table.insert(reversed, map[i])
@@ -98,13 +98,13 @@ function reverse_map(map)
   return reversed
 end
 
-function find_biggest_island(map)
+function findBiggestIsland(map)
   local lumps = {{map[1]}}  --lumps are islands, but lumps sounds cuter
   for i, node in ipairs(map) do
     local in_lump = false
     local the_lump = 1
     for j, lump in ipairs(lumps) do
-      if node_in_set(node, lump) then
+      if nodeInSet(node, lump) then
         in_lump = true
         the_lump = j
         break
@@ -112,10 +112,10 @@ function find_biggest_island(map)
         in_lump = false
       end
     end
-    neighbours_of_node = find_neighbours(node, map)
+    neighbours_of_node = findNeighbours(node, map)
     if in_lump == true then
       for _, neighbour in ipairs(neighbours_of_node) do
-        if not node_in_set(neighbour, lumps[the_lump]) then
+        if not nodeInSet(neighbour, lumps[the_lump]) then
           table.insert(lumps[the_lump], neighbour)
         end
       end
@@ -139,7 +139,7 @@ function find_biggest_island(map)
   return cleaned_map
 end
 
-function combine_sets(seta, setb)
+function combineSets(seta, setb)
   local new_set = {}
   for _, i in ipairs(seta) do
     table.insert(new_set, i)
@@ -150,7 +150,7 @@ function combine_sets(seta, setb)
   return new_set
 end
 
-function get_average_value(map, x, y, radius, height, width)
+function getAverageValue(map, x, y, radius, height, width)
   culminator = 0
   if x < math.ceil(radius/2) or y < math.ceil(radius/2) then
     radius = math.min (x, y)
@@ -176,22 +176,22 @@ function World:makeCanvas(biome)
   for i = 1, self.width, self.render_resolution do
     for j = 1, self.height, self.render_resolution do
       if self.map[i][j] < self.deep_water then
-        color = mix_colors(self.biomes[biome].deep_water, self.biomes[biome].deep_water, self.map[i][j], self.deep_water, 0.0)
+        color = mixColors(self.biomes[biome].deep_water, self.biomes[biome].deep_water, self.map[i][j], self.deep_water, 0.0)
         lg.setColor(color)
       elseif self.map[i][j] < self.shallow_water then
-        color = mix_colors(self.biomes[biome].deep_water, self.biomes[biome].shallow_water, self.map[i][j], self.shallow_water, self.deep_water)
+        color = mixColors(self.biomes[biome].deep_water, self.biomes[biome].shallow_water, self.map[i][j], self.shallow_water, self.deep_water)
         lg.setColor(color)
       elseif self.map[i][j] < self.beach then
-        color = mix_colors(self.biomes[biome].shallow_water, self.biomes[biome].beach, self.map[i][j], self.beach, self.shallow_water)
+        color = mixColors(self.biomes[biome].shallow_water, self.biomes[biome].beach, self.map[i][j], self.beach, self.shallow_water)
         lg.setColor(color)
       elseif self.map[i][j] < self.low_land then
-        color = mix_colors(self.biomes[biome].beach, self.biomes[biome].low_land, self.map[i][j], self.low_land, self.beach)
+        color = mixColors(self.biomes[biome].beach, self.biomes[biome].low_land, self.map[i][j], self.low_land, self.beach)
         lg.setColor(color)
       elseif self.map[i][j] < self.mid_land then
-        color = mix_colors(self.biomes[biome].low_land, self.biomes[biome].mid_land, self.map[i][j], self.mid_land, self.low_land)
+        color = mixColors(self.biomes[biome].low_land, self.biomes[biome].mid_land, self.map[i][j], self.mid_land, self.low_land)
         lg.setColor(color)
       else
-        color = mix_colors(self.biomes[biome].mid_land, self.biomes[biome].hills, self.map[i][j], 1.0, self.mid_land)
+        color = mixColors(self.biomes[biome].mid_land, self.biomes[biome].hills, self.map[i][j], 1.0, self.mid_land)
         lg.setColor(color)
       end
       -- lg.point( i - 1, j - 1 )
@@ -240,7 +240,7 @@ function World:drawDebug()
 end
 
 
-function mix_colors(color1, color2, val, max, min)
+function mixColors(color1, color2, val, max, min)
   new_color = {0, 0, 0, 255}
   denominator = max - min
   numerator = val - min

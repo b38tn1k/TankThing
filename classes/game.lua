@@ -26,11 +26,11 @@ game.screen.width = 0
 game.screen.height = 0
 game.player = {}
 game.player.team = 1
-game.team_sizes = {1, 2, 3, 4}
+game.team_sizes = {1, 1, 0, 0}
 
 function new()
   game.teams = {}
-  game.team_sizes = game.menu.team_count
+  game.team_sizes = game.menu.team_sizes
   for i = 1, game.number_of_teams do
     table.insert(game.teams, proto_team(game.team_sizes[i]))
   end
@@ -44,7 +44,7 @@ function new()
   local id = 1
   for i = 1, game.number_of_teams do
     local random_area = math.random((#game.path_map / game.number_of_teams) * i) -- find a basic area
-    local neighbours = find_more_neighbours(game.path_map[random_area], game.path_map, 2, 2) -- generate surrounding potential spawn points
+    local neighbours = findMoreNeighbours(game.path_map[random_area], game.path_map, 2, 2) -- generate surrounding potential spawn points
     for j = 1, game.teams[i].size do
       local random_position = math.random(#neighbours)
       local random_node = neighbours[random_position]
@@ -64,7 +64,7 @@ function new()
       table.insert(game.tanks, tank)
     end
   end
-  game.team_sizes = game.menu.team_count
+  game.team_sizes = game.menu.team_sizes
   game.pause = false
   game.draw_blank_screen = false
 end
@@ -78,9 +78,9 @@ function resize()
   game.world.seed = game.worldseed -- naming sort of sucks here :-P
   game.path_map = game.world:generate()
   game.world:makeCanvas(1)
-  game.team_sizes = game.menu.team_count
+  game.team_sizes = game.menu.team_sizes
   game.menu = Menu.create(game.screen.width, game.screen.height, game.assets)
-  game.menu.team_count = game.team_sizes
+  game.menu.team_sizes = game.team_sizes
   -- HIDE OR SHOW TANKS
   to_remove = {}
   for i, tank in ipairs(game.hidden_tanks) do
@@ -111,14 +111,14 @@ function resize()
 end
 game.resize = resize
 
-function update_tanks(dt)
+function updateTanks(dt)
   for j, tank in ipairs(game.tanks) do
     tank:update(dt, 1)
   end
 end
-game.update_tanks = update_tanks
+game.updateTanks = updateTanks
 
-function update_projectiles(dt)
+function updateProjectiles(dt)
   for i, projectile in ipairs(game.projectiles) do
     if projectile:removable(game.screen) then
       table.remove(game.projectiles, i)
@@ -127,25 +127,25 @@ function update_projectiles(dt)
     end
     -- CHECK FOR TANK/PROJECTILE COLLISIONS
     for j, tank in ipairs(game.tanks) do
-      if tank:check_for_collision(projectile.x.position, projectile.y.position) == true and tank.id ~= projectile.parent_id then
+      if tank:check4collision(projectile.x.position, projectile.y.position) == true and tank.id ~= projectile.parent_id then
         table.remove(game.projectiles, i)
         table.remove(game.tanks, j)
       end
     end
   end
 end
-game.update_projectiles = update_projectiles
+game.updateProjectiles = updateProjectiles
 
-function fire_active_tank()
+function fireActiveTank()
   for j, tank in ipairs(game.tanks) do
     if tank.selected == true then
-      game.make_tank_shoot(tank)
+      game.makeTankShoot(tank)
     end
   end
 end
-game.fire_active_tank = fire_active_tank
+game.fireActiveTank = fireActiveTank
 
-function make_tank_shoot(tank)
+function makeTankShoot(tank)
   local can_fire = true
   for _, proj in ipairs(game.projectiles) do
     if proj.parent_id == tank.id then
@@ -153,19 +153,26 @@ function make_tank_shoot(tank)
     end
   end
   if can_fire == true then
-    local data = tank:fire_main_weapon()
+    local data = tank:fireMainWeapon()
     if next(data) ~= nil then
       projectile = Projectile.create(data)
       table.insert(game.projectiles, projectile)
     end
   end
 end
-game.make_tank_shoot = make_tank_shoot
+game.makeTankShoot = makeTankShoot
 
-function select_tank(x, y)
+function deselectTanks()
+  for _, tank in ipairs(game.tanks) do
+    tank.selected = false
+  end
+end
+game.deselectTanks = deselectTanks
+
+function selectTank(x, y)
   local newly_selected = false
   for j, tank in ipairs(game.tanks) do
-    if tank:check_for_collision(x, y) and tank.team == game.player.team then
+    if tank:check4collision(x, y) and tank.team == game.player.team then
       for j, other_tank in ipairs(game.tanks) do
         other_tank.selected = false
       end
@@ -179,6 +186,6 @@ function select_tank(x, y)
     end
   end
 end
-game.select_tank = select_tank
+game.selectTank = selectTank
 
 return game
