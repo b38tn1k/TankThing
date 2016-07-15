@@ -117,8 +117,8 @@ function Tank:drawHalo(shader)
 end
 
 function Tank:drawLayer2()
+  lg.draw(self.sprite.layer2.img, self.x.position, self.y.position, self.rotation.turrent, 1, 1, self.sprite.layer2.width/2, self.sprite.layer2.height/2)
   -- lg.draw(self.sprite.layer2.img, self.x.position, self.y.position, self.rotation.base + self.rotation.turrent, 1, 1, self.sprite.layer2.width/2, self.sprite.layer2.height/2)
-  lg.draw(self.sprite.layer2.img, self.x.position, self.y.position, self.rotation.base + self.rotation.turrent, 1, 1, self.sprite.layer2.width/2, self.sprite.layer2.height/2)
 end
 
 -- ROTATE UPPER LAYER
@@ -200,7 +200,7 @@ function Tank:check4collision(x, y)
 end
 
 function Tank:fireMainWeapon()
-  data = {self.id, self.team, self.projectile.speed, self.projectile.lifespan, self.projectile.img_path, self.x.position, self.y.position, self.rotation.turrent + self.rotation.base, self.x.bound, self.y.bound, self.sprite.layer2.height*2}
+  data = {self.id, self.team, self.projectile.speed, self.projectile.lifespan, self.projectile.img_path, self.x.position, self.y.position, self.rotation.turrent, self.x.bound, self.y.bound, self.sprite.layer2.height*2}
   return data
 end
 
@@ -388,9 +388,8 @@ function Tank:update(dt, speed_modifier)
   -- elseif self.rotation.turrent_target < 0 - math.rad(110) then
   --   self.rotation.turrent_target = 0 - math.rad(100)
   -- end
-
-  self.rotation.turrent = self:controlDampener(self.rotation.turrent, self.rotation.turrent_target, self.rot_gain)
   self.rotation.base = self:controlDampener(self.rotation.base, self.rotation.base_target, self.rot_gain)
+  self.rotation.turrent = self:controlDampener(self.rotation.turrent, self.rotation.turrent_target, self.rot_gain)
 end
 
 return Tank

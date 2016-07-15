@@ -1,6 +1,8 @@
 function targetting(tanks)
-  local ranges = {}
   for i, tank in ipairs(tanks) do
+    local ranges = {}
+    local target = {}
+    local the_target = {}
     for j, others in ipairs(tanks) do
       if others.team ~= tank.team then
         -- find all targets within range
@@ -8,7 +10,6 @@ function targetting(tanks)
         local rel_y = (tank.y.position - others.y.position) * (tank.y.position - others.y.position)
         local distance = math.sqrt(rel_x + rel_y)
         if distance < tank.projectile.range then
-          local target = {}
           target.x = others.x.position
           target.y = others.y.position
           target.distance = distance
@@ -18,7 +19,6 @@ function targetting(tanks)
         end
       end
     end
-    local the_target = {}
     if next(ranges) ~= nil then
       -- find the most likely target (the closest one)
       the_target.distance = 10000000000 -- easier to initialise this way than deal with nil
@@ -31,7 +31,7 @@ function targetting(tanks)
       tank.turrent_idle = false
       tank.rotation.turrent_target = the_target.angle
     else
-      tank.rotation.turrent_target = 0
+      tank.rotation.turrent_target = majorAngle(tank.rotation.base)
     end
   end
 end
@@ -47,6 +47,10 @@ function findAngle(tank, target)
   local angle = 0
   local dx = tank.x.position - target.x.position
   local dy = tank.y.position - target.y.position
-  angle = tank.rotation.base - atan(dx, dy)
+  angle = math.rad(360) - atan(dx, dy)
   return angle
+end
+
+function majorAngle(angle)
+  return (angle - math.floor(angle/math.rad(360))*math.rad(360))
 end
