@@ -172,30 +172,32 @@ function World:makeCanvas(biome)
   self.canvas = lg.newCanvas(self.width, self.height)
   lg.setCanvas(self.canvas)
   colors = {}
+  local setColor = lg.setColor
+  local rectangle = lg.rectangle
   -- Render Base Image
   for i = 1, self.width, self.render_resolution do
     for j = 1, self.height, self.render_resolution do
       if self.map[i][j] < self.deep_water then
         color = mixColors(self.biomes[biome].deep_water, self.biomes[biome].deep_water, self.map[i][j], self.deep_water, 0.0)
-        lg.setColor(color)
+        setColor(color)
       elseif self.map[i][j] < self.shallow_water then
         color = mixColors(self.biomes[biome].deep_water, self.biomes[biome].shallow_water, self.map[i][j], self.shallow_water, self.deep_water)
-        lg.setColor(color)
+        setColor(color)
       elseif self.map[i][j] < self.beach then
         color = mixColors(self.biomes[biome].shallow_water, self.biomes[biome].beach, self.map[i][j], self.beach, self.shallow_water)
-        lg.setColor(color)
+        setColor(color)
       elseif self.map[i][j] < self.low_land then
         color = mixColors(self.biomes[biome].beach, self.biomes[biome].low_land, self.map[i][j], self.low_land, self.beach)
-        lg.setColor(color)
+        setColor(color)
       elseif self.map[i][j] < self.mid_land then
         color = mixColors(self.biomes[biome].low_land, self.biomes[biome].mid_land, self.map[i][j], self.mid_land, self.low_land)
-        lg.setColor(color)
+        setColor(color)
       else
         color = mixColors(self.biomes[biome].mid_land, self.biomes[biome].hills, self.map[i][j], 1.0, self.mid_land)
-        lg.setColor(color)
+        setColor(color)
       end
       -- lg.point( i - 1, j - 1 )
-      lg.rectangle("fill", i-1, j-1, self.render_resolution, self.render_resolution)
+      rectangle("fill", i-1, j-1, self.render_resolution, self.render_resolution)
     end
   end
   lg.setCanvas()

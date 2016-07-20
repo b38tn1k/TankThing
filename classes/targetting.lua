@@ -21,27 +21,41 @@ function targetting(tanks)
     end
     if next(ranges) ~= nil then
       -- find the most likely target (the closest one)
-      the_target.distance = 10000000000 -- easier to initialise this way than deal with nil
+      the_target.distance = 10000000000 -- lazier to initialise this way than deal with nil
       for _, range in ipairs(ranges) do
         if range.distance < the_target.distance then
           the_target = {}
           the_target = range
         end
       end
-      tank.turrent_idle = false
+      -- Choose to fire or aim betterer
+      if math.abs(majorAngle(the_target.angle) - majorAngle(tank.rotation.turrent)) < math.rad(5) then 
+        game.makeTankShoot(tank)
+      end
       tank.rotation.turrent_target = the_target.angle
     else
-      tank.rotation.turrent_target = majorAngle(tank.rotation.base)
+     tank.rotation.turrent_target =  majorAngle(tank.rotation.base)
+    end
+    -- move this to tank:update. fixes angles so turrent is lazy
+    if math.abs(tank.rotation.turrent_target - tank.rotation.turrent) > math.rad(180) then 
+      if (tank.rotation.turrent_target > tank.rotation.turrent) then 
+        tank.rotation.turrent_target = tank.rotation.turrent_target - math.rad(360)
+      else 
+        tank.rotation.turrent_target = tank.rotation.turrent_target + math.rad(360)
+      end
+    end
+    if tank.rotation.turrent > math.rad(360) and tank.rotation.turrent_target > math.rad(360) then 
+      tank.rotation.turrent = tank.rotation.turrent - math.rad(360)
+      tank.rotation.turrent_target = tank.rotation.turrent_target - math.rad(360)
+    end
+    if tank.rotation.turrent < 0 and tank.rotation.turrent_target < 0 then 
+      tank.rotation.turrent = tank.rotation.turrent + math.rad(360)
+      tank.rotation.turrent_target = tank.rotation.turrent_target + math.rad(360)
     end
   end
 end
 
 function findAngle(tank, target)
-  -- I know I should have figured out a proper coordinate system a long time ago
-  -- like, when I was doing the add waypoint stuff
-  -- but I didn't
-  -- next time I will
-  -- learning!
   atan = math.atan2
   rad = math.rad
   local angle = 0

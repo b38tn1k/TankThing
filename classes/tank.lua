@@ -80,6 +80,8 @@ function Tank:init(id, team, node, theta)
   table.insert(self.y.path, self.y.position)
   self.rotation.base = theta
   self.rotation.base_target = theta
+  self.rotation.turrent = theta
+  self.rotation.turrent_target = theta
 end
 
 function Tank:drawDebug()
@@ -118,7 +120,6 @@ end
 
 function Tank:drawLayer2()
   lg.draw(self.sprite.layer2.img, self.x.position, self.y.position, self.rotation.turrent, 1, 1, self.sprite.layer2.width/2, self.sprite.layer2.height/2)
-  -- lg.draw(self.sprite.layer2.img, self.x.position, self.y.position, self.rotation.base + self.rotation.turrent, 1, 1, self.sprite.layer2.width/2, self.sprite.layer2.height/2)
 end
 
 -- ROTATE UPPER LAYER
@@ -205,7 +206,7 @@ function Tank:fireMainWeapon()
 end
 
 -- RETURN CLOSEST VALUE TO ZERO
-function Tank:closest2Zero(x, y)
+function closest2Zero(x, y)
   new_value = math.min(math.abs(x), math.abs(y))
   if x < 0 and y < 0 then
     new_value = new_value * -1
@@ -272,15 +273,15 @@ function Tank:setTarget(x, y)
   end
 end
 
--- MOVE TOWARDS TARGET
+--MOVE TOWARDS TARGET
 function Tank:approachTarget(dt)
   local x_pos_poscont_contrib = self:controlDampener(self.x.position, self.x.target, self.vel_gain)
   local y_pos_poscont_contrib = self:controlDampener(self.y.position, self.y.target, self.vel_gain)
   local delta_x = (x_pos_poscont_contrib - self.x.position) / dt
   local delta_y = (y_pos_poscont_contrib - self.y.position) / dt
   if self.autonomous then
-    self.x.velocity = self:closest2Zero(delta_x, self.x.speed)
-    self.y.velocity = self:closest2Zero(delta_y, self.y.speed)
+    self.x.velocity = closest2Zero(delta_x, self.x.speed)
+    self.y.velocity = closest2Zero(delta_y, self.y.speed)
   end
   --check if arrived and if there are more points to go to
   if self:check4collision(self.x.path[self.path_index], self.y.path[self.path_index]) == true and self.x.path[self.path_index + 1] ~= nil then
@@ -383,11 +384,6 @@ function Tank:update(dt, speed_modifier)
       self.y.position = self.hitbox.offset
     end
   end
-  -- if self.rotation.turrent_target > math.rad(110) then
-  --   self.rotation.turrent_target = math.rad(100)
-  -- elseif self.rotation.turrent_target < 0 - math.rad(110) then
-  --   self.rotation.turrent_target = 0 - math.rad(100)
-  -- end
   self.rotation.base = self:controlDampener(self.rotation.base, self.rotation.base_target, self.rot_gain)
   self.rotation.turrent = self:controlDampener(self.rotation.turrent, self.rotation.turrent_target, self.rot_gain)
 end

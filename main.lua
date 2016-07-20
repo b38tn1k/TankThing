@@ -43,7 +43,7 @@ function love.load()
   -- top_speed = 30
   top_speed = 60
   projectile_speed = 200
-  projectile_lifespan = 0.5 -- SECONDS
+  projectile_lifespan = 1 -- SECONDS
 end
 
 function love.update(dt)
@@ -97,7 +97,7 @@ function love.draw()
     if game.debug == true then
       game.world:drawDebug()
       for _, tank in ipairs(game.tanks) do
-        tank:draw_path()
+        tank:drawPath()
         if tank.selected then
           tank:drawDebug()
         end
