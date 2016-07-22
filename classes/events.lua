@@ -37,3 +37,4 @@ function love.resize(w, h)
   game.resize()
   lg.reset()
 end
+

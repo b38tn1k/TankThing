@@ -3,7 +3,7 @@ local World = {}
 World.__index = World
 
 
-function World.create(width, height, path_resolution, render_resolution)
+function World.create(width, height, screen_width, screen_height, path_resolution, render_resolution)
   local w = {}
   setmetatable(w, World)
   w.seed = {}
@@ -11,6 +11,9 @@ function World.create(width, height, path_resolution, render_resolution)
   w.amplitude = {0.6, 0.3, 0.04}
   w.scale = {0.001, 0.006, 0.03}
   w.width, w.height = width, height
+  w.screen_width, w.screen_height = screen_width, screen_height
+  w.offset = {}
+  w.offset.y, w.offset.x = 0, 0
   w.biomes = {}
   plains = {}
   plains.deep_water = {90, 203, 243, 255}
@@ -255,7 +258,35 @@ function mixColors(color1, color2, val, max, min)
 end
 
 function World:draw()
-  lg.draw(self.canvas)
+  lg.draw(self.canvas, self.offset.x, self.offset.y)
 end
 
+function World:update()
+  if self.offset.y >= self.screen_height - self.height and self.offset.y <= 0 then
+    if love.keyboard.isDown("s") then
+      self.offset.y = self.offset.y - self.render_resolution
+    end
+    if love.keyboard.isDown("w") then
+      self.offset.y = self.offset.y + self.render_resolution
+    end
+  end
+  if self.offset.y > 0 then 
+    self.offset.y = 0
+  elseif self.offset.y < self.screen_height - self.height then 
+    self.offset.y = self.screen_height - self.height
+  end
+  if self.offset.x >= self.screen_width - self.width and self.offset.x <= 0 then 
+    if love.keyboard.isDown("d") then
+      self.offset.x = self.offset.x - self.render_resolution
+    end
+    if love.keyboard.isDown("a") then
+      self.offset.x = self.offset.x + self.render_resolution
+    end
+  end
+  if self.offset.x < self.screen_width - self.width then 
+    self.offset.x = self.screen_width - self.width
+  elseif self.offset.x > 0 then 
+      self.offset.x = 0 
+  end
+end
 return World

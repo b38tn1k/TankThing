@@ -27,6 +27,8 @@ game.screen.height = 0
 game.player = {}
 game.player.team = 1
 game.team_sizes = {1, 1, 0, 0}
+game.world_width = 1000
+game.world_height = 1000
 
 function new()
   game.teams = {}
@@ -74,7 +76,7 @@ function resize()
   game.screen.width, game.screen.height = lg.getDimensions()
   game.draw_blank_screen = true
   -- REBUILD WORLD, MENU
-  game.world = World.create(game.screen.width, game.screen.height, game.path_resolution, render_resolution)
+  game.world = World.create(game.world_width, game.world_height, game.screen.width, game.screen.height, game.path_resolution, render_resolution)
   game.world.seed = game.worldseed -- naming sort of sucks here :-P
   game.path_map = game.world:generate()
   game.world:makeCanvas(1)

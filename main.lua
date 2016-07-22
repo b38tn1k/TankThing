@@ -28,7 +28,7 @@ function love.load()
   render_resolution = 5
   World = require("classes.world")
   -- CREATE A MAP FOR START SCREEN BACKGROUND
-  game.world = World.create(game.screen.width, game.screen.height, game.path_resolution, render_resolution)
+  game.world = World.create(game.world_width, game.world_height, game.screen.width, game.screen.height, game.path_resolution, render_resolution)
   game.worldseed = game.world:newSeed()
   game.path_map = game.world:generate()
   game.world:makeCanvas(1)
@@ -55,6 +55,8 @@ function love.update(dt)
     end
   else
     game.time = game.time + dt
+    -- UPDATE WORLD TO SCREEN POSITION
+    game.world:update()
     -- UPDATE SHADERS
     local a_tank_is_selected = false
     for j, tank in ipairs(game.tanks) do

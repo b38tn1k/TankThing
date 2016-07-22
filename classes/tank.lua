@@ -384,6 +384,21 @@ function Tank:update(dt, speed_modifier)
       self.y.position = self.hitbox.offset
     end
   end
+  if math.abs(self.rotation.turrent_target - self.rotation.turrent) > math.rad(180) then
+    if (self.rotation.turrent_target > self.rotation.turrent) then
+      self.rotation.turrent_target = self.rotation.turrent_target - math.rad(360)
+    else
+      self.rotation.turrent_target = self.rotation.turrent_target + math.rad(360)
+    end
+  end
+  if self.rotation.turrent > math.rad(360) and self.rotation.turrent_target > math.rad(360) then
+    self.rotation.turrent = self.rotation.turrent - math.rad(360)
+    self.rotation.turrent_target = self.rotation.turrent_target - math.rad(360)
+  end
+  if self.rotation.turrent < 0 and self.rotation.turrent_target < 0 then
+    self.rotation.turrent = self.rotation.turrent + math.rad(360)
+    self.rotation.turrent_target = self.rotation.turrent_target + math.rad(360)
+  end
   self.rotation.base = self:controlDampener(self.rotation.base, self.rotation.base_target, self.rot_gain)
   self.rotation.turrent = self:controlDampener(self.rotation.turrent, self.rotation.turrent_target, self.rot_gain)
 end
