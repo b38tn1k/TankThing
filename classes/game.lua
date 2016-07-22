@@ -5,12 +5,11 @@ function proto_team(size)
 end
 
 local game = {}
-
 game.tanks = {}
 game.hidden_tanks = {}
 game.projectiles = {}
 game.world = {}
-game.path_resolution = 10
+game.resolution = 5
 game.path_map = {}
 game.menu = {}
 game.time = 0
@@ -26,9 +25,9 @@ game.screen.width = 0
 game.screen.height = 0
 game.player = {}
 game.player.team = 1
-game.team_sizes = {1, 1, 0, 0}
-game.world_width = 1000
-game.world_height = 1000
+game.team_sizes = {5, 5, 5, 5}
+game.world_width = 3000
+game.world_height = 3000
 
 function new()
   game.teams = {}
@@ -50,7 +49,7 @@ function new()
     for j = 1, game.teams[i].size do
       local random_position = math.random(#neighbours)
       local random_node = neighbours[random_position]
-      tank = Tank.create(game.screen.width, game.screen.height, top_speed, projectile_speed, projectile_lifespan, game.path_map, game.path_resolution, game.assets.small_tanks[i])
+      tank = Tank.create(game.screen.width, game.screen.height, top_speed, projectile_speed, projectile_lifespan, game.path_map, game.resolution, game.assets.small_tanks[i])
       if random_node ~= nil then
         tank:init(id, i, random_node, math.random())
         id = id + 1
@@ -76,7 +75,7 @@ function resize()
   game.screen.width, game.screen.height = lg.getDimensions()
   game.draw_blank_screen = true
   -- REBUILD WORLD, MENU
-  game.world = World.create(game.world_width, game.world_height, game.screen.width, game.screen.height, game.path_resolution, render_resolution)
+  game.world = World.create(game.world_width, game.world_height, game.screen.width, game.screen.height, game.resolution)
   game.world.seed = game.worldseed -- naming sort of sucks here :-P
   game.path_map = game.world:generate()
   game.world:makeCanvas(1)

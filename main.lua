@@ -25,10 +25,9 @@ function love.load()
   Menu = require("classes.menu")
   game.menu = Menu.create(game.screen.width, game.screen.height, game.assets)
   -- WORLD CLASS
-  render_resolution = 5
   World = require("classes.world")
   -- CREATE A MAP FOR START SCREEN BACKGROUND
-  game.world = World.create(game.world_width, game.world_height, game.screen.width, game.screen.height, game.path_resolution, render_resolution)
+  game.world = World.create(game.world_width, game.world_height, game.screen.width, game.screen.height, game.resolution)
   game.worldseed = game.world:newSeed()
   game.path_map = game.world:generate()
   game.world:makeCanvas(1)

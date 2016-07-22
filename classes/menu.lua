@@ -26,8 +26,9 @@ function Menu.create(width, height, assets)
   m.tank_buttons = {}
   m.tank_start_y = m.border + m.logo:getHeight()
   m.tank_start_x = m.ngbutton_dims[1]
-  m.team_sizes = {1, 1, 0, 0}
+  m.team_sizes = {5, 5, 5, 5}
   m.tank_logo_height = m.tlogos[1]:getHeight()
+  m.max_team_size = 10
   return m
 end
 
@@ -71,7 +72,7 @@ function Menu:updateTeams(x, y)
   for i, button in ipairs(self.tank_buttons) do
     if y > button.min_y and y < button.max_y then
       if x > button.delineator then
-        if self.team_sizes[i] < 5 then
+        if self.team_sizes[i] < self.max_team_size then
           self.team_sizes[i] = self.team_sizes[i] + 1
         end
       else

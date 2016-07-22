@@ -1,15 +1,18 @@
 -- World Class
+-- need to change world generateion to remove overscaling. just use 1:1
+-- scale with the perlin map. this should make it faster/remove complexity
 local World = {}
 World.__index = World
 
 
-function World.create(width, height, screen_width, screen_height, path_resolution, render_resolution)
+function World.create(width, height, screen_width, screen_height, resolution)
   local w = {}
   setmetatable(w, World)
   w.seed = {}
   w.map = {}
   w.amplitude = {0.6, 0.3, 0.04}
-  w.scale = {0.001, 0.006, 0.03}
+  w.scale = {0.005, 0.01, 0.07}
+  -- w.scale = {0.001, 0.006, 0.03}
   w.width, w.height = width, height
   w.screen_width, w.screen_height = screen_width, screen_height
   w.offset = {}
@@ -36,10 +39,9 @@ function World.create(width, height, screen_width, screen_height, path_resolutio
   w.beach = 0.33
   w.low_land = 0.5
   w.mid_land = 0.7
-  w.traversable = 0.4
+  w.traversable = w.beach
   w.path_map = {}
-  w.path_resolution = path_resolution
-  w.render_resolution = render_resolution
+  w.resolution = resolution
   return w
 end
 
@@ -50,36 +52,39 @@ function World:newSeed()
   return self.seed
 end
 
-function World:generate()
-  self.path_map = {}
+function World:makeHeightMap()
   base_layer = 0
   lump_layer = 0
   more_lumps = 0
-  -- Create the Height Map
-  for i = 1, self.width do
+  for i = 1, math.ceil((self.width + 1)/self.resolution) do
     self.map[i] = {}
-    for j = 1, self.height do
+    for j = 1, math.ceil((self.height + 1)/self.resolution) do
       base_layer = self.amplitude[1] * love.math.noise(self.scale[1] * i + self.seed[1], self.scale[1] * j + self.seed[1])
       lump_layer = self.amplitude[2] * love.math.noise(self.scale[2] * i + self.seed[2], self.scale[2] * j + self.seed[2])
       more_lumps = self.amplitude[3] * love.math.noise(self.scale[3] * i + self.seed[3], self.scale[3] * j + self.seed[3])
       self.map[i][j] = base_layer + lump_layer + more_lumps
     end
   end
-  -- Create the low res Occupancy Grid
-  for i = 1, self.width, self.path_resolution do
-    x = (i + self.path_resolution - 1) / self.path_resolution
-    for j = 1, self.height, self.path_resolution do
+end
+
+function World:makePathMap()
+  for i = 1, math.ceil((self.width + 1)/self.resolution) do
+    for j = 1, math.ceil((self.height + 1)/self.resolution) do
       node = {}
-      node.x = x
-      node.y = (j + self.path_resolution - 1) / self.path_resolution
-      -- could be improved to find average of terrain for more realistic mapping
-      terrain_value = getAverageValue(self.map, i, j, self.path_resolution, self.height, self.width)
-      if terrain_value > self.traversable then
+      node.x = i
+      node.y = j
+      if self.map[i][j] > self.traversable then
         table.insert(self.path_map, node)
       end
     end
   end
-  self.path_map = combineMaps(findBiggestIsland(self.path_map), findBiggestIsland(reverseMap(self.path_map)))
+end
+
+function World:generate()
+  self.path_map = {}
+  self:makeHeightMap()
+  self:makePathMap()
+  -- self.path_map = combineMaps(findBiggestIsland(self.path_map), findBiggestIsland(reverseMap(self.path_map)))
   return self.path_map
 end
 
@@ -178,8 +183,8 @@ function World:makeCanvas(biome)
   local setColor = lg.setColor
   local rectangle = lg.rectangle
   -- Render Base Image
-  for i = 1, self.width, self.render_resolution do
-    for j = 1, self.height, self.render_resolution do
+  for i = 1, math.ceil((self.width + 1)/self.resolution) do
+    for j = 1, math.ceil((self.height + 1)/self.resolution) do
       if self.map[i][j] < self.deep_water then
         color = mixColors(self.biomes[biome].deep_water, self.biomes[biome].deep_water, self.map[i][j], self.deep_water, 0.0)
         setColor(color)
@@ -200,38 +205,7 @@ function World:makeCanvas(biome)
         setColor(color)
       end
       -- lg.point( i - 1, j - 1 )
-      rectangle("fill", i-1, j-1, self.render_resolution, self.render_resolution)
-    end
-  end
-  lg.setCanvas()
-end
-
-function World:imageCanvas(tiles)
-  local images = {}
-  for _, path in pairs(tiles) do
-    new_image = lg.newImage(path)
-    table.insert(images, new_image)
-  end
-  -- Draw the Height Map to a canvas
-  self.canvas = lg.newCanvas(self.width, self.height)
-  lg.setCanvas(self.canvas)
-  for i = 1, self.width, self.render_resolution do
-    for j = 1, self.height, self.render_resolution do
-      if self.map[i][j] < self.deep_water then
-        lg.draw(images[1], i, j, 0, 0.2, 0.2)
-      elseif self.map[i][j] < self.shallow_water then
-        lg.draw(images[2], i, j, 0, 0.2, 0.2)
-      elseif self.map[i][j] < self.beach then
-        lg.draw(images[3], i, j, 0, 0.2, 0.2)
-      elseif self.map[i][j] < self.low_land then
-        lg.draw(images[4], i, j, 0, 0.2, 0.2)
-      elseif self.map[i][j] < self.mid_land then
-        lg.draw(images[5], i, j, 0, 0.2, 0.2)
-      else
-        lg.draw(images[6], i, j, 0, 0.2, 0.2)
-      end
-      -- lg.point( i - 1, j - 1 )
-      -- lg.rectangle("fill", i-1, j-1, self.render_resolution, self.render_resolution)
+      rectangle("fill", self.resolution * (i-1), self.resolution * (j-1), self.resolution, self.resolution)
     end
   end
   lg.setCanvas()
@@ -240,7 +214,7 @@ end
 function World:drawDebug()
   lg.setColor(200, 0, 255, 255)
   for i, node in ipairs(self.path_map) do
-    lg.rectangle("fill", node.x * self.path_resolution , node.y * self.path_resolution, 2, 2)
+    lg.rectangle("fill", node.x * self.resolution , node.y * self.resolution, 2, 2)
   end
 end
 
@@ -262,31 +236,32 @@ function World:draw()
 end
 
 function World:update()
-  if self.offset.y >= self.screen_height - self.height and self.offset.y <= 0 then
-    if love.keyboard.isDown("s") then
-      self.offset.y = self.offset.y - self.render_resolution
-    end
-    if love.keyboard.isDown("w") then
-      self.offset.y = self.offset.y + self.render_resolution
+  if love.keyboard.isDown("s") then
+    self.offset.y = self.offset.y - self.resolution
+  end
+  if love.keyboard.isDown("w") then
+    self.offset.y = self.offset.y + self.resolution
+  end
+  if love.keyboard.isDown("d") then
+    self.offset.x = self.offset.x - self.resolution
+  end
+  if love.keyboard.isDown("a") then
+    self.offset.x = self.offset.x + self.resolution
+  end
+
+  if self.screen_height < self.height then
+    if self.offset.y > 0 then
+      self.offset.y = 0
+    elseif self.offset.y < self.screen_height - self.height then
+      self.offset.y = self.screen_height - self.height
     end
   end
-  if self.offset.y > 0 then 
-    self.offset.y = 0
-  elseif self.offset.y < self.screen_height - self.height then 
-    self.offset.y = self.screen_height - self.height
-  end
-  if self.offset.x >= self.screen_width - self.width and self.offset.x <= 0 then 
-    if love.keyboard.isDown("d") then
-      self.offset.x = self.offset.x - self.render_resolution
+  if self.screen_width < self.width then
+    if self.offset.x < self.screen_width - self.width then
+      self.offset.x = self.screen_width - self.width
+    elseif self.offset.x > 0 then
+        self.offset.x = 0
     end
-    if love.keyboard.isDown("a") then
-      self.offset.x = self.offset.x + self.render_resolution
-    end
-  end
-  if self.offset.x < self.screen_width - self.width then 
-    self.offset.x = self.screen_width - self.width
-  elseif self.offset.x > 0 then 
-      self.offset.x = 0 
   end
 end
 return World
