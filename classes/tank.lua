@@ -108,18 +108,18 @@ function Tank:drawDebug()
 end
 
 -- DRAW THE TANK
-function Tank:drawLayer1()
-  lg.draw(self.sprite.layer1.img, self.x.position, self.y.position, self.rotation.base, 1, 1, self.sprite.layer1.width/2, self.sprite.layer1.height/2)
+function Tank:drawLayer1(offset)
+  lg.draw(self.sprite.layer1.img, self.x.position + offset.x, self.y.position + offset.y, self.rotation.base, 1, 1, self.sprite.layer1.width/2, self.sprite.layer1.height/2)
 end
 
 function Tank:drawHalo(shader)
   lg.setShader(shader)
-  lg.draw(self.sprite.selected.img, self.x.position, self.y.position, self.rotation.base, 1, 1, self.sprite.selected.width/2, self.sprite.selected.height/2)
+  lg.draw(self.sprite.selected.img, self.x.position + offset.x, self.y.position + offset.y, self.rotation.base, 1, 1, self.sprite.selected.width/2, self.sprite.selected.height/2)
   lg.setShader()
 end
 
-function Tank:drawLayer2()
-  lg.draw(self.sprite.layer2.img, self.x.position, self.y.position, self.rotation.turrent, 1, 1, self.sprite.layer2.width/2, self.sprite.layer2.height/2)
+function Tank:drawLayer2(offset)
+  lg.draw(self.sprite.layer2.img, self.x.position + offset.x, self.y.position + offset.y, self.rotation.turrent, 1, 1, self.sprite.layer2.width/2, self.sprite.layer2.height/2)
 end
 
 -- ROTATE UPPER LAYER
@@ -201,7 +201,7 @@ function Tank:check4collision(x, y)
 end
 
 function Tank:fireMainWeapon()
-  data = {self.id, self.team, self.projectile.speed, self.projectile.lifespan, self.projectile.img_path, self.x.position, self.y.position, self.rotation.turrent, self.x.bound, self.y.bound, self.sprite.layer2.height*2}
+  data = {self.id, self.team, self.x.bound, self.y.bound, self.projectile.speed, self.projectile.lifespan, self.projectile.img_path, self.x.position, self.y.position, self.rotation.turrent, self.x.bound, self.y.bound, self.sprite.layer2.height*2}
   return data
 end
 

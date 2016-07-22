@@ -11,7 +11,7 @@ function World.create(width, height, screen_width, screen_height, resolution)
   w.seed = {}
   w.map = {}
   w.amplitude = {0.6, 0.3, 0.04}
-  w.scale = {0.005, 0.01, 0.07}
+  w.scale = {0.005, 0.01, 0.1}
   -- w.scale = {0.001, 0.006, 0.03}
   w.width, w.height = width, height
   w.screen_width, w.screen_height = screen_width, screen_height
@@ -244,24 +244,23 @@ function World:update()
   end
   if love.keyboard.isDown("d") then
     self.offset.x = self.offset.x - self.resolution
+    print ("OFFSET: "..self.offset.x)
+    print ("MAP WIDTH: " .. self.width)
+    print ("SCREEN WIDTH: " .. self.screen_width)
+    print ("MAX OFFSET: " .. self.screen_width - self.width)
   end
   if love.keyboard.isDown("a") then
     self.offset.x = self.offset.x + self.resolution
   end
-
-  if self.screen_height < self.height then
-    if self.offset.y > 0 then
-      self.offset.y = 0
-    elseif self.offset.y < self.screen_height - self.height then
-      self.offset.y = self.screen_height - self.height
-    end
+  if self.offset.y > 0 then
+    self.offset.y = 0
+  elseif self.offset.y < self.screen_height - self.height then
+    self.offset.y = self.screen_height - self.height
   end
-  if self.screen_width < self.width then
-    if self.offset.x < self.screen_width - self.width then
-      self.offset.x = self.screen_width - self.width
-    elseif self.offset.x > 0 then
-        self.offset.x = 0
-    end
+  if self.offset.x < self.screen_width - self.width then
+    self.offset.x = self.screen_width - self.width
+  elseif self.offset.x > 0 then
+      self.offset.x = 0
   end
 end
 return World

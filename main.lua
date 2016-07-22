@@ -62,7 +62,7 @@ function love.update(dt)
       if tank.selected then
         a_tank_is_selected = true
         spotlight:send("radius", 50)
-        spotlight:send("xy", tank.x.position, lg.getHeight() - tank.y.position)
+        spotlight:send("xy", tank.x.position + game.world.offset.x, lg.getHeight() - tank.y.position - game.world.offset.y)
       end
     end
     if a_tank_is_selected == false then
@@ -84,15 +84,15 @@ function love.draw()
     game.world:draw()
     -- DRAW TANK BASE LAYERS
     for j, tank in ipairs(game.tanks) do
-      tank:drawLayer1()
+      tank:drawLayer1(game.world.offset)
     end
     -- DRAW PROJECTILES
     for i, projectile in ipairs(game.projectiles) do
-      projectile:draw()
+      projectile:draw(game.world.offset)
     end
     -- DRAW TANK TURRENTS
     for j, tank in ipairs(game.tanks) do
-      tank:drawLayer2()
+      tank:drawLayer2(game.world.offset)
     end
     -- DEBUG VIEW ON TOP
     if game.debug == true then

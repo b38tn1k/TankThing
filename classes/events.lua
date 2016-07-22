@@ -33,8 +33,8 @@ function love.keyreleased(key)
 end
 
 function love.resize(w, h)
-  game.screen.width, game.screen.height = w, h
+  game.screen.width = w
+  game.screen.height = h
   game.resize()
-  lg.reset()
 end
 

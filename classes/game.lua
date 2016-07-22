@@ -9,7 +9,7 @@ game.tanks = {}
 game.hidden_tanks = {}
 game.projectiles = {}
 game.world = {}
-game.resolution = 5
+game.resolution = 10
 game.path_map = {}
 game.menu = {}
 game.time = 0
@@ -49,7 +49,7 @@ function new()
     for j = 1, game.teams[i].size do
       local random_position = math.random(#neighbours)
       local random_node = neighbours[random_position]
-      tank = Tank.create(game.screen.width, game.screen.height, top_speed, projectile_speed, projectile_lifespan, game.path_map, game.resolution, game.assets.small_tanks[i])
+      tank = Tank.create(game.world_width, game.world_height, top_speed, projectile_speed, projectile_lifespan, game.path_map, game.resolution, game.assets.small_tanks[i])
       if random_node ~= nil then
         tank:init(id, i, random_node, math.random())
         id = id + 1
@@ -73,7 +73,6 @@ game.new = new
 
 function resize()
   game.screen.width, game.screen.height = lg.getDimensions()
-  game.draw_blank_screen = true
   -- REBUILD WORLD, MENU
   game.world = World.create(game.world_width, game.world_height, game.screen.width, game.screen.height, game.resolution)
   game.world.seed = game.worldseed -- naming sort of sucks here :-P
@@ -82,33 +81,6 @@ function resize()
   game.team_sizes = game.menu.team_sizes
   game.menu = Menu.create(game.screen.width, game.screen.height, game.assets)
   game.menu.team_sizes = game.team_sizes
-  -- HIDE OR SHOW TANKS
-  to_remove = {}
-  for i, tank in ipairs(game.hidden_tanks) do
-    tank.path_map = game.path_map
-    if tank.x.position < game.screen.width or tank.y.position < game.screen.height then
-      table.insert(game.tanks, tank)
-      table.insert(to_remove, i)
-    end
-  end
-  for i, index in ipairs(to_remove) do
-    table.remove(game.hidden_tanks, index)
-  end
-  to_remove = {}
-  for j, tank in ipairs(game.tanks) do
-    tank.path_map = game.path_map
-    if tank.x.position >= game.screen.width or tank.y.position >= game.screen.height then
-      table.insert(game.hidden_tanks, tank)
-      table.insert(to_remove, j)
-    else
-      tank.x.bound = game.screen.width
-      tank.y.bound = game.screen.height
-    end
-  end
-  for i, index in ipairs(to_remove) do
-    table.remove(game.tanks, index)
-  end
-  game.draw_blank_screen = false
 end
 game.resize = resize
 
@@ -171,6 +143,8 @@ end
 game.deselectTanks = deselectTanks
 
 function selectTank(x, y)
+  x = x - game.world.offset.x
+  y = y - game.world.offset.y
   local newly_selected = false
   for j, tank in ipairs(game.tanks) do
     if tank:check4collision(x, y) and tank.team == game.player.team then
