@@ -19,8 +19,12 @@ function love.keyreleased(key)
   else
     if key == " " then
       game.fireActiveTank()
-    elseif key == "backspace" then
+    end
+    if key == "backspace" then
       game.deselectTanks()
+    end
+    if key == "lshift" then 
+      game.playCommands()
     end
   end
   -- TOGGLEABLE REGARDLESS OF GAME STATE

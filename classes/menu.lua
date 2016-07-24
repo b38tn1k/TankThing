@@ -28,7 +28,7 @@ function Menu.create(width, height, assets)
   m.tank_start_x = m.ngbutton_dims[1]
   m.team_sizes = {5, 5, 5, 5}
   m.tank_logo_height = m.tlogos[1]:getHeight()
-  m.max_team_size = 10
+  m.max_team_size = 5
   return m
 end
 

@@ -4,6 +4,14 @@ function proto_team(size)
   return new_team
 end
 
+function new_command(x, y, id)
+  local command = {}
+  command.x = x
+  command.y = y
+  command.id = id
+  return command
+end
+
 local game = {}
 game.tanks = {}
 game.hidden_tanks = {}
@@ -28,6 +36,7 @@ game.player.team = 1
 game.team_sizes = {5, 5, 5, 5}
 game.world_width = 3000
 game.world_height = 3000
+game.sequenced_commands = {}
 
 function new()
   game.teams = {}
@@ -157,10 +166,26 @@ function selectTank(x, y)
   end
   for j, tank in ipairs(game.tanks) do
     if tank.selected == true and newly_selected == false then
-      tank:addWaypoint(x, y)
+      if love.keyboard.isDown('lshift') then 
+        table.insert(game.sequenced_commands, new_command(x, y, tank.id))
+      else
+        tank:addWaypoint(x, y)
+      end
     end
   end
 end
 game.selectTank = selectTank
+
+function playCommands()
+  for _, command in ipairs(game.sequenced_commands) do
+    for _, tank in ipairs(game.tanks) do 
+      if tank.id == command.id then
+        tank:addWaypoint(command.x, command.y)
+      end
+    end
+  end
+  game.sequenced_commands = {}
+end
+game.playCommands = playCommands
 
 return game

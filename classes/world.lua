@@ -244,10 +244,6 @@ function World:update()
   end
   if love.keyboard.isDown("d") then
     self.offset.x = self.offset.x - self.resolution
-    print ("OFFSET: "..self.offset.x)
-    print ("MAP WIDTH: " .. self.width)
-    print ("SCREEN WIDTH: " .. self.screen_width)
-    print ("MAX OFFSET: " .. self.screen_width - self.width)
   end
   if love.keyboard.isDown("a") then
     self.offset.x = self.offset.x + self.resolution
