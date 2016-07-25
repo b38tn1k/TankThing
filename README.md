@@ -1,5 +1,6 @@
-# TankThing
-just playing with LOVE and Lua
+![TANKS](/images/logo.png?raw=true)
+A simple top down tank game written in Lua using the LOVE2d game engine. 
 
+Procedural Terrain Generation, Path Finding, Clicking on Tanks!
 
-[screen shots and videos of progress](https://goo.gl/photos/HhCV1R9P9C4usTf16)
+[Screen Shots and videos of gameplay](https://goo.gl/photos/HhCV1R9P9C4usTf16)
