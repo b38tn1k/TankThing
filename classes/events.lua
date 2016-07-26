@@ -7,7 +7,7 @@ function love.mousepressed(x, y, button, istouch)
     end
     game.menu:updateTeams(x, y)
   else
-    if button == 'l' then
+    if button == 1 then
       game.selectTank(x, y)
     end
   end

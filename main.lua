@@ -62,7 +62,8 @@ function love.update(dt)
       if tank.selected then
         a_tank_is_selected = true
         spotlight:send("radius", 50)
-        spotlight:send("xy", tank.x.position + game.world.offset.x, lg.getHeight() - tank.y.position - game.world.offset.y)
+        -- spotlight:send("xy", tank.x.position + game.world.offset.x, lg.getHeight() - tank.y.position - game.world.offset.y)
+        spotlight:send("xy", tank.x.position + game.world.offset.x, tank.y.position + game.world.offset.y)
       end
     end
     if a_tank_is_selected == false then
