@@ -29,6 +29,7 @@ function Menu.create(width, height, assets)
   m.team_sizes = {5, 5, 5, 5}
   m.tank_logo_height = m.tlogos[1]:getHeight()
   m.max_team_size = 5
+  m.player_team = 1
   return m
 end
 
@@ -55,6 +56,11 @@ function Menu:draw()
   lg.draw(self.logo, self.ngbutton_dims[1], self.ngbutton_dims[3], 0, 1, 1)
   -- DRAW TANKS
   for i, team in ipairs(self.team_sizes) do -- for every team
+    if i == self.player_team then 
+      lg.setColor(255, 100, 255, 255)
+      lg.printf('YOU:', self.tank_start_x - self.border, self.tank_start_y + i * self.tank_logo_height, 5, "left")
+      lg.reset()
+    end
     for j = 1, team do -- for every team member
       local xpos = self.tank_start_x + self.border * j
       local ypos = self.tank_start_y + i * self.tank_logo_height
@@ -75,8 +81,10 @@ function Menu:updateTeams(x, y)
         if self.team_sizes[i] < self.max_team_size then
           self.team_sizes[i] = self.team_sizes[i] + 1
         end
-      else
-        self.team_sizes[i] = self.team_sizes[i] - 1
+      elseif x > self.tank_start_x + self.border then 
+          self.team_sizes[i] = self.team_sizes[i] - 1
+      else 
+        self.player_team = i
       end
     end
   end

@@ -209,15 +209,18 @@ function World:makeCanvas(biome)
     end
   end
   lg.setCanvas()
-end
-
-function World:drawDebug()
+  self.debug_canvas = lg.newCanvas(self.width, self.height)
+  lg.setCanvas(self.debug_canvas)
   lg.setColor(200, 0, 255, 255)
   for i, node in ipairs(self.path_map) do
     lg.rectangle("fill", node.x * self.resolution , node.y * self.resolution, 2, 2)
   end
+  lg.setCanvas()
 end
 
+function World:drawDebug()
+  lg.draw(self.debug_canvas, self.offset.x, self.offset.y)
+end
 
 function mixColors(color1, color2, val, max, min)
   new_color = {0, 0, 0, 255}

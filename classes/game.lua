@@ -40,7 +40,10 @@ game.sequenced_commands = {}
 
 function new()
   game.teams = {}
+  local offset = {}
   game.team_sizes = game.menu.team_sizes
+  game.player.team = game.menu.player_team
+  print (game.menu.player_team)
   for i = 1, game.number_of_teams do
     table.insert(game.teams, proto_team(game.team_sizes[i]))
   end
@@ -51,9 +54,16 @@ function new()
   game.world:makeCanvas(1)
   game.tanks = {}
   game.hidden_tanks = {}
+  local offset = {}
   local id = 1
   for i = 1, game.number_of_teams do
     local random_area = math.random((#game.path_map / game.number_of_teams) * i) -- find a basic area
+    if i == game.player.team then 
+      -- if the team is the player's team then start with offsets orientated to them
+      offset.x = -1 * game.path_map[random_area].x * game.resolution + game.screen.width / 2
+      offset.y = -1 * game.path_map[random_area].y * game.resolution + game.screen.height / 3
+      game.world.offset = offset
+    end
     local neighbours = findMoreNeighbours(game.path_map[random_area], game.path_map, 2, 2) -- generate surrounding potential spawn points
     for j = 1, game.teams[i].size do
       local random_position = math.random(#neighbours)
@@ -81,12 +91,14 @@ end
 game.new = new
 
 function resize()
+  local offset = game.world.offset
   game.screen.width, game.screen.height = lg.getDimensions()
   -- REBUILD WORLD, MENU
   game.world = World.create(game.world_width, game.world_height, game.screen.width, game.screen.height, game.resolution)
   game.world.seed = game.worldseed -- naming sort of sucks here :-P
   game.path_map = game.world:generate()
   game.world:makeCanvas(1)
+  game.world.offset = offset
   game.team_sizes = game.menu.team_sizes
   game.menu = Menu.create(game.screen.width, game.screen.height, game.assets)
   game.menu.team_sizes = game.team_sizes
