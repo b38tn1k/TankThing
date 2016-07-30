@@ -37,13 +37,13 @@ game.team_sizes = {5, 5, 5, 5}
 game.world_width = 3000
 game.world_height = 3000
 game.sequenced_commands = {}
+game.lasso = nil
 
 function new()
   game.teams = {}
   local offset = {}
   game.team_sizes = game.menu.team_sizes
   game.player.team = game.menu.player_team
-  print (game.menu.player_team)
   for i = 1, game.number_of_teams do
     table.insert(game.teams, proto_team(game.team_sizes[i]))
   end
@@ -163,7 +163,22 @@ function deselectTanks()
 end
 game.deselectTanks = deselectTanks
 
-function selectTank(x, y)
+function selectAGroup()
+  local test = game.lasso:returnSelectedTanks(game.tanks, game.world.offset)
+  if next(test) ~= nil then 
+    for i, tank in ipairs(game.tanks) do
+      for j, id in ipairs(test) do 
+        if tank.id == id then 
+          tank.selected = true
+        end
+      end
+    end
+  end
+  game.lasso = nil
+end
+game.selectAGroup = selectAGroup
+
+function selectTankOrAddWaypoint(x, y)
   x = x - game.world.offset.x
   y = y - game.world.offset.y
   local newly_selected = false
@@ -186,7 +201,7 @@ function selectTank(x, y)
     end
   end
 end
-game.selectTank = selectTank
+game.selectTankOrAddWaypoint = selectTankOrAddWaypoint
 
 function playCommands()
   for _, command in ipairs(game.sequenced_commands) do

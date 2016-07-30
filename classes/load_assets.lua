@@ -11,4 +11,5 @@ assets.small_tanks[3] = {"images/small_tank_selected.png", "images/small_green_t
 assets.small_tanks[4] = {"images/small_tank_selected.png", "images/small_black_tank_base.png", "images/small_black_tank_turrent.png", "images/small_black_missile.png"}
 assets.logo = "images/logo.png"
 assets.terrain = {"images/deep_water.png", "images/shallow_water.png", "images/beach.png", "images/beach.png", "images/low_land.png", "images/mid_land.png", "images/hills.png"}
+assets.arrow = "images/arrow.png"
 return assets

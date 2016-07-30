@@ -8,7 +8,8 @@ function love.mousepressed(x, y, button, istouch)
     game.menu:updateTeams(x, y)
   else
     if button == 1 then
-      game.selectTank(x, y)
+      game.selectTankOrAddWaypoint(x, y)
+      game.lasso = game.lasso_creator.create(x, y)
     end
   end
 end
@@ -33,6 +34,12 @@ function love.keyreleased(key)
   end
   if key == 'tab' then
     game.debug = not game.debug
+  end
+end
+
+function love.mousereleased( x, y, button, istouch )
+  if game.lasso ~= nil then 
+    game.selectAGroup()
   end
 end
 

@@ -24,6 +24,8 @@ function love.load()
   -- MENU CLASS
   Menu = require("classes.menu")
   game.menu = Menu.create(game.screen.width, game.screen.height, game.assets)
+  -- PLAYER LASSO CLASS
+  game.lasso_creator = require("classes.lasso")
   -- WORLD CLASS
   World = require("classes.world")
   -- CREATE A MAP FOR START SCREEN BACKGROUND
@@ -56,6 +58,10 @@ function love.update(dt)
     game.time = game.time + dt
     -- UPDATE WORLD TO SCREEN POSITION
     game.world:update()
+    -- UPDATE LASSO IF IT EXISTS
+    if game.lasso ~= nil then 
+      game.lasso:update(love.mouse.getPosition())
+    end
     -- UPDATE SHADERS
     local a_tank_is_selected = false
     for j, tank in ipairs(game.tanks) do
@@ -94,6 +100,10 @@ function love.draw()
     -- DRAW TANK TURRENTS
     for j, tank in ipairs(game.tanks) do
       tank:drawLayer2(game.world.offset)
+    end
+    -- DRAW LASSO IF IT EXISTS
+    if game.lasso ~= nil then 
+      game.lasso:draw()
     end
     -- DEBUG VIEW ON TOP
     if game.debug == true then

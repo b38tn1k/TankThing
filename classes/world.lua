@@ -11,7 +11,7 @@ function World.create(width, height, screen_width, screen_height, resolution)
   w.seed = {}
   w.map = {}
   w.amplitude = {0.6, 0.3, 0.04}
-  w.scale = {0.005, 0.01, 0.1}
+  w.scale = {0.007, 0.02, 0.09}
   -- w.scale = {0.001, 0.006, 0.03}
   w.width, w.height = width, height
   w.screen_width, w.screen_height = screen_width, screen_height
@@ -27,18 +27,18 @@ function World.create(width, height, screen_width, screen_height, resolution)
   plains.hills = {88, 132, 112, 255}
   table.insert(w.biomes, plains)
   desert = {}
-  desert.deep_water = {90, 203, 243, 255}
+  desert.deep_water = {80, 193, 233, 255}
   desert.shallow_water = {152, 218, 246, 255}
   desert.beach = {119, 136, 152, 255}
   desert.low_land = {255, 221, 85, 255}
-  desert.mid_land = {255, 119, 35, 255}
+  desert.mid_land = {200, 109, 25, 255}
   desert.hills = {204, 85, 51, 255}
   table.insert(w.biomes, desert)
   w.deep_water = 0.15
   w.shallow_water = 0.28
   w.beach = 0.33
-  w.low_land = 0.5
-  w.mid_land = 0.7
+  w.low_land = 0.4
+  w.mid_land = 0.55
   w.traversable = w.beach
   w.path_map = {}
   w.resolution = resolution
@@ -176,13 +176,12 @@ function getAverageValue(map, x, y, radius, height, width)
 end
 
 function World:makeCanvas(biome)
+  local setColor = lg.setColor
+  local rectangle = lg.rectangle
   -- Draw the Height Map to a canvas
   self.canvas = lg.newCanvas(self.width, self.height)
   lg.setCanvas(self.canvas)
-  colors = {}
-  local setColor = lg.setColor
-  local rectangle = lg.rectangle
-  -- Render Base Image
+  -- Render Base colors
   for i = 1, math.ceil((self.width + 1)/self.resolution) do
     for j = 1, math.ceil((self.height + 1)/self.resolution) do
       if self.map[i][j] < self.deep_water then

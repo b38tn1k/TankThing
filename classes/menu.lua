@@ -10,6 +10,7 @@ function Menu.create(width, height, assets)
   m.width = m.screen_width - 2 * m.border
   m.height = m.screen_height - 2 * m.border
   m.logo = lg.newImage(assets.logo)
+  m.arrow = lg.newImage(assets.arrow)
   m.tlogos = {}
   for i, logo in ipairs(assets.small_tanks) do
     local tbase = lg.newImage(logo[2])
@@ -24,12 +25,13 @@ function Menu.create(width, height, assets)
   end
   m.ngbutton_dims = {m.screen_width / 2 - m.logo:getWidth()/2, m.screen_width / 2 + m.logo:getWidth()/2, m.border, m.border + m.logo:getHeight()}
   m.tank_buttons = {}
-  m.tank_start_y = m.border + m.logo:getHeight()
-  m.tank_start_x = m.ngbutton_dims[1]
+  m.max_team_size = 5
   m.team_sizes = {5, 5, 5, 5}
   m.tank_logo_height = m.tlogos[1]:getHeight()
-  m.max_team_size = 5
+  m.tank_logo_width = m.tlogos[1]:getWidth()
   m.player_team = 1
+  m.tank_start_y = m.border + m.logo:getHeight()
+  m.tank_start_x = (m.screen_width - m.max_team_size * (m.tank_logo_width + m.border))/2 + m.border
   return m
 end
 
@@ -57,9 +59,10 @@ function Menu:draw()
   -- DRAW TANKS
   for i, team in ipairs(self.team_sizes) do -- for every team
     if i == self.player_team then 
-      lg.setColor(255, 100, 255, 255)
-      lg.printf('YOU:', self.tank_start_x - self.border, self.tank_start_y + i * self.tank_logo_height, 5, "left")
-      lg.reset()
+      -- lg.setColor(255, 100, 255, 255)
+      lg.draw(self.arrow, self.tank_start_x - self.border, self.tank_start_y + i * self.tank_logo_height)
+      -- lg.printf('YOU:', self.tank_start_x - self.border, self.tank_start_y + i * self.tank_logo_height, 100, "left")
+      -- lg.reset()
     end
     for j = 1, team do -- for every team member
       local xpos = self.tank_start_x + self.border * j
