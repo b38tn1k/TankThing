@@ -109,8 +109,38 @@ function updateTanks(dt)
   for j, tank in ipairs(game.tanks) do
     tank:update(dt, 1)
   end
+  preventTankOverlaps()
 end
 game.updateTanks = updateTanks
+
+function preventTankOverlaps()
+  local new_waypoint = {}
+  for j, tank in ipairs(game.tanks) do
+    for i, other in ipairs(game.tanks) do
+      if other.id ~= tank.id then 
+        if tank:check4collision(other.x.position, other.y.position, true) then 
+          if tank.x.position < other.x.position then
+            new_waypoint.x = tank.x.position - tank.hitbox.offset
+            if tank.y.position < other.y.position then
+              new_waypoint.y = tank.y.position - tank.hitbox.offset
+            else
+              new_waypoint.y = tank.y.position + tank.hitbox.offset
+            end
+          else
+            new_waypoint.x = tank.x.position + tank.hitbox.offset
+            if tank.y.position < other.y.position then
+              new_waypoint.y = tank.y.position - tank.hitbox.offset
+            else
+              new_waypoint.y = tank.y.position + tank.hitbox.offset
+            end
+          end
+          tank.x.path[tank.path_index + 1] = new_waypoint.x
+          tank.y.path[tank.path_index + 1] = new_waypoint.y
+        end
+      end
+    end
+  end
+end
 
 function updateProjectiles(dt)
   for i, projectile in ipairs(game.projectiles) do

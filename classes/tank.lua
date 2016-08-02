@@ -188,13 +188,22 @@ function Tank:slow2stop()
   self:updateVelocities()
 end
 
-function Tank:check4collision(x, y)
+function Tank:check4collision(x, y, big)
   collision = false
   if x ~= nil and y ~= nil then
-    if x >= self.hitbox.x_min and x <= self.hitbox.x_max then
-      if y >= self.hitbox.y_min and y <= self.hitbox.y_max then
-        collision = true
+    if big == nil then 
+        if x >= self.hitbox.x_min and x <= self.hitbox.x_max then
+          if y >= self.hitbox.y_min and y <= self.hitbox.y_max then
+            collision = true
+          end
+        end
+    else
+      if x >= self.hitbox.x_min - self.hitbox.offset and x <= self.hitbox.x_max + self.hitbox.offset then 
+        if y >= self.hitbox.y_min - self.hitbox.offset and y <= self.hitbox.y_max + self.hitbox.offset then 
+          collision = true
+        end
       end
+
     end
   end
   return collision

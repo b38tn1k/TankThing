@@ -56,13 +56,13 @@ function Menu:draw()
   lg.reset()
   -- DRAW LOGO/NEW GAME BUTTON
   lg.draw(self.logo, self.ngbutton_dims[1], self.ngbutton_dims[3], 0, 1, 1)
-  -- DRAW TANKS
+  -- DRAW TANKS AND TEAM SELECTION
   for i, team in ipairs(self.team_sizes) do -- for every team
     if i == self.player_team then 
-      -- lg.setColor(255, 100, 255, 255)
-      lg.draw(self.arrow, self.tank_start_x - self.border, self.tank_start_y + i * self.tank_logo_height)
-      -- lg.printf('YOU:', self.tank_start_x - self.border, self.tank_start_y + i * self.tank_logo_height, 100, "left")
-      -- lg.reset()
+      lg.setColor(255, 100, 255, 255)
+      -- lg.draw(self.arrow, self.tank_start_x - self.border, self.tank_start_y + i * self.tank_logo_height)
+      lg.printf("YOUR TEAM:", self.tank_start_x - self.border*2, self.tank_logo_height / 4 + self.tank_start_y + i * self.tank_logo_height, 100, "left")
+      lg.reset()
     end
     for j = 1, team do -- for every team member
       local xpos = self.tank_start_x + self.border * j
