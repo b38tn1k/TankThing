@@ -102,12 +102,14 @@ end
 function Astar(start, goal, path_map)
   local open = {}
   local closed = {}
+  local counter = 0 --use to escape larger path finding
   start.g = 0
   start.h = heuristicDistance(start, goal)
   start.f = start.g + start.h
   table.insert(open, start)
   while not(next(open) == nil) do
     -- find node with smallest f!
+    counter = counter + 1
     to_remove = 1
     q = open[to_remove]
     for i, node in ipairs(open) do
@@ -144,6 +146,10 @@ function Astar(start, goal, path_map)
     end
     -- add q to the closed list
     table.insert(closed, q)
+    if counter > 500 then
+      closed = {start}
+      break
+    end
   end
   cleaned_closed = cleanPath(closed, path_map)
   return cleaned_closed

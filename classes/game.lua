@@ -120,18 +120,18 @@ function preventTankOverlaps()
       if other.id ~= tank.id then 
         if tank:check4collision(other.x.position, other.y.position, true) then 
           if tank.x.position < other.x.position then
-            new_waypoint.x = tank.x.position - tank.hitbox.offset
+            new_waypoint.x = tank.x.position - tank.hitbox.offset *2
             if tank.y.position < other.y.position then
-              new_waypoint.y = tank.y.position - tank.hitbox.offset
+              new_waypoint.y = tank.y.position - tank.hitbox.offset *2
             else
-              new_waypoint.y = tank.y.position + tank.hitbox.offset
+              new_waypoint.y = tank.y.position + tank.hitbox.offset *2
             end
           else
-            new_waypoint.x = tank.x.position + tank.hitbox.offset
+            new_waypoint.x = tank.x.position + tank.hitbox.offset *2
             if tank.y.position < other.y.position then
-              new_waypoint.y = tank.y.position - tank.hitbox.offset
+              new_waypoint.y = tank.y.position - tank.hitbox.offset *2
             else
-              new_waypoint.y = tank.y.position + tank.hitbox.offset
+              new_waypoint.y = tank.y.position + tank.hitbox.offset *2
             end
           end
           tank.x.path[tank.path_index + 1] = new_waypoint.x

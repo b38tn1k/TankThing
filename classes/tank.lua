@@ -349,8 +349,10 @@ function Tank:addWaypoint(x, y)
           self.path_length = self.path_length + 1
         end
       end
-      table.insert(self.x.path, x)
-      table.insert(self.y.path, y)
+      if #raw_path > 2 then 
+        table.insert(self.x.path, x)
+        table.insert(self.y.path, y)
+      end
       self.path_length = self.path_length + 1
     end
   end
