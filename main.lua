@@ -1,6 +1,4 @@
-require "classes.events"
-require "classes.path_finding"
-require "classes.targetting"
+require "classes.events" require "classes.path_finding" require "classes.targetting"
 function love.load()
   math.randomseed(os.time() * 1000)
   -- CLEAR OUT RANDOM BUFFER
@@ -40,11 +38,16 @@ function love.load()
   game.tanks = {}
   game.hidden_tanks = {}
   Tank = require("classes.tank")
+  -- FACTORY CLASS
+  game.factories = {}
+  Factory = require("classes.factory")
   -- SET SOME TANK VARIABLES
   -- top_speed = 30
   top_speed = 60
   projectile_speed = 200
   projectile_lifespan = 1 -- SECONDS
+  Explosion = require("classes.explosion")
+  game.explosions = Explosion.create(1, 40, 5)
 end
 
 function love.update(dt)
@@ -59,7 +62,7 @@ function love.update(dt)
     -- UPDATE WORLD TO SCREEN POSITION
     game.world:update()
     -- UPDATE LASSO IF IT EXISTS
-    if game.lasso ~= nil then 
+    if game.lasso ~= nil then
       game.lasso:update(love.mouse.getPosition())
     end
     -- UPDATE SHADERS
@@ -89,6 +92,10 @@ function love.draw()
     lg.setShader(spotlight)
     -- DRAW WORLD
     game.world:draw()
+    -- DRAW FACTORIES
+    for j, factory in ipairs(game.factories) do
+      factory:draw(game.world.offset)
+    end
     -- DRAW TANK BASE LAYERS
     for j, tank in ipairs(game.tanks) do
       tank:drawLayer1(game.world.offset)
@@ -102,7 +109,7 @@ function love.draw()
       tank:drawLayer2(game.world.offset)
     end
     -- DRAW LASSO IF IT EXISTS
-    if game.lasso ~= nil then 
+    if game.lasso ~= nil then
       game.lasso:draw()
     end
     -- DEBUG VIEW ON TOP
@@ -124,4 +131,5 @@ function love.draw()
   else
     lg.clear()
   end
+  -- game.explosions:draw(0, 0)
 end

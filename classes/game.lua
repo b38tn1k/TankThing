@@ -41,6 +41,7 @@ game.lasso = nil
 
 function new()
   game.teams = {}
+  game.factories = {}
   local offset = {}
   game.team_sizes = game.menu.team_sizes
   game.player.team = game.menu.player_team
@@ -58,7 +59,7 @@ function new()
   local id = 1
   for i = 1, game.number_of_teams do
     local random_area = math.random((#game.path_map / game.number_of_teams) * i) -- find a basic area
-    if i == game.player.team then 
+    if i == game.player.team then
       -- if the team is the player's team then start with offsets orientated to them
       offset.x = -1 * game.path_map[random_area].x * game.resolution + game.screen.width / 2
       offset.y = -1 * game.path_map[random_area].y * game.resolution + game.screen.height / 3
@@ -72,6 +73,10 @@ function new()
       if random_node ~= nil then
         tank:init(id, i, random_node, math.random())
         id = id + 1
+        if j == 1 then
+          factory = Factory.create(random_node.x * game.resolution, random_node.y * game.resolution, game.assets.factory)
+          table.insert(game.factories, factory)
+        end
       else
         -- try again
         new()
@@ -117,8 +122,8 @@ function preventTankOverlaps()
   local new_waypoint = {}
   for j, tank in ipairs(game.tanks) do
     for i, other in ipairs(game.tanks) do
-      if other.id ~= tank.id then 
-        if tank:check4collision(other.x.position, other.y.position, true) then 
+      if other.id ~= tank.id then
+        if tank:check4collision(other.x.position, other.y.position, true) then
           if tank.x.position < other.x.position then
             new_waypoint.x = tank.x.position - tank.hitbox.offset *2
             if tank.y.position < other.y.position then
@@ -195,10 +200,10 @@ game.deselectTanks = deselectTanks
 
 function selectAGroup()
   local test = game.lasso:returnSelectedTanks(game.tanks, game.world.offset)
-  if next(test) ~= nil then 
+  if next(test) ~= nil then
     for i, tank in ipairs(game.tanks) do
-      for j, id in ipairs(test) do 
-        if tank.id == id then 
+      for j, id in ipairs(test) do
+        if tank.id == id then
           tank.selected = true
         end
       end
@@ -223,7 +228,7 @@ function selectTankOrAddWaypoint(x, y)
   end
   for j, tank in ipairs(game.tanks) do
     if tank.selected == true and newly_selected == false then
-      if love.keyboard.isDown('lshift') then 
+      if love.keyboard.isDown('lshift') then
         table.insert(game.sequenced_commands, new_command(x, y, tank.id))
       else
         tank:addWaypoint(x, y)
@@ -235,7 +240,7 @@ game.selectTankOrAddWaypoint = selectTankOrAddWaypoint
 
 function playCommands()
   for _, command in ipairs(game.sequenced_commands) do
-    for _, tank in ipairs(game.tanks) do 
+    for _, tank in ipairs(game.tanks) do
       if tank.id == command.id then
         tank:addWaypoint(command.x, command.y)
       end
